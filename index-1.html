@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<title>Viaje a Puerto Madryn</title>
+<meta name="theme-color" content="#0E3B4F">
+<link rel="manifest" href="manifest.json?v=1">
+<link rel="icon" href="icon-192.svg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+
+  :root{
+    --verde:#0E3B4F;
+    --verde-claro:#1F6F8B;
+    --terracota:#D2623A;
+    --ocre:#E8B05C;
+    --crema:#F5EFE3;
+    --crema-osc:#E9DFC9;
+    --indigo:#2B2A4C;
+    --texto:#2A2A28;
+    --gris:#6B6660;
+  }
+  *{box-sizing:border-box;}
+
+  /* ---------- ACCESSIBILITY ---------- */
+  .skip-link{
+    position:absolute;top:-100px;left:8px;z-index:99999;
+    background:var(--verde);color:#fff;padding:10px 16px;border-radius:8px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:13px;font-weight:700;text-decoration:none;
+    transition:top .15s;
+  }
+  .skip-link:focus{top:8px;}
+
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  [tabindex]:focus-visible, .stop:focus-within{
+    outline:3px solid var(--ocre);
+    outline-offset:2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  html,body{margin:0;padding:0;}
+  html{height:100%;}
+  body{
+    background:var(--crema);
+    color:var(--texto);
+    font-family:'Iowan Old Style','Georgia',serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:90px;
+    overscroll-behavior-y:none;
+    min-height:100%;
+  }
+  .sans{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    height:54vh;
+    min-height:320px;
+    overflow:hidden;
+    background:var(--verde);
+  }
+  .hero img{
+    width:100%;height:100%;object-fit:cover;
+    opacity:0.55;
+  }
+  .hero-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(14,59,79,0.15) 0%, rgba(14,59,79,0.55) 70%, var(--crema) 100%);
+    display:flex;flex-direction:column;justify-content:flex-end;
+    padding:24px 20px 28px;
+  }
+  .eyebrow{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    text-transform:uppercase;letter-spacing:0.14em;font-size:11px;
+    color:var(--ocre);font-weight:600;margin-bottom:8px;
+  }
+  .hero h1{
+    color:#fff;font-size:2.1rem;line-height:1.05;margin:0 0 8px;
+    font-weight:700;text-shadow:0 2px 14px rgba(0,0,0,0.35);
+  }
+  .hero p{
+    color:#EFE7D6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:13.5px;margin:0;max-width:32em;line-height:1.5;
+  }
+  #settingsBtn{
+    position:absolute;top:16px;right:16px;z-index:50;
+    height:38px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.4);
+    background:rgba(0,0,0,0.55);font-size:15px;color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:0 14px;font-weight:700;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    backdrop-filter:blur(4px);
+  }
+
+  /* ---------- SETTINGS MODAL ---------- */
+  .modal-backdrop{
+    display:none;position:fixed;inset:0;z-index:8000;
+    background:rgba(20,30,25,0.55);
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-card{
+    background:#fff;border-radius:16px;padding:22px 20px;max-width:380px;width:100%;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  }
+  .modal-card h3{margin:0 0 4px;color:var(--verde);font-size:1.2rem;}
+  .modal-sub{font-size:12.5px;color:var(--gris);margin:0 0 18px;line-height:1.4;}
+  .modal-label{display:block;font-size:12.5px;font-weight:700;color:var(--verde);margin:14px 0 8px;}
+  .modal-input{
+    width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--crema-osc);
+    background:var(--crema);color:var(--texto);font-size:14px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .weekday-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:7px;}
+  .weekday-chip{
+    padding:9px 0;border-radius:9px;border:1.5px solid var(--crema-osc);background:var(--crema);
+    color:var(--texto);font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;
+  }
+  .weekday-chip.active{background:var(--verde);border-color:var(--verde);color:#fff;}
+  .day-stepper{
+    display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--crema);border-radius:12px;padding:10px;
+  }
+  .stepper-btn{
+    width:38px;height:38px;border-radius:50%;border:none;background:var(--terracota);
+    color:#fff;font-size:20px;font-weight:700;cursor:pointer;line-height:1;
+  }
+  .stepper-btn:disabled{opacity:0.35;cursor:default;}
+  #dayCount{font-size:1.4rem;font-weight:700;color:var(--verde);min-width:28px;text-align:center;}
+  .modal-hint{font-size:11px;color:var(--gris);text-align:center;margin:8px 0 0;}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;}
+  .modal-btn-secondary, .modal-btn-primary{
+    flex:1;padding:11px 0;border-radius:10px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;
+  }
+  .modal-btn-secondary{background:var(--crema);color:var(--gris);}
+  .modal-btn-primary{background:var(--terracota);color:#fff;}
+
+  /* ---------- NAV TABS ---------- */
+  .tabbar{
+    position:sticky;top:0;z-index:5000;
+    background:var(--crema);
+    display:flex;overflow-x:auto;gap:6px;
+    padding:10px 14px;border-bottom:1px solid var(--crema-osc);
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .tabbar::-webkit-scrollbar{display:none;}
+  .tab{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    flex:0 0 auto;
+    padding:7px 14px;border-radius:99px;
+    background:transparent;border:1px solid var(--crema-osc);
+    color:var(--gris);font-size:13px;font-weight:600;
+    cursor:pointer;white-space:nowrap;transition:all .15s;
+  }
+  .tab.active{background:var(--verde);color:#fff;border-color:var(--verde);}
+
+  /* ---------- SECTIONS ---------- */
+  .section{display:none;padding:18px 18px 6px;max-width:680px;margin:0 auto;}
+  .section.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .day-banner{
+    background:var(--verde);color:#fff;border-radius:14px;
+    padding:16px 18px;margin-bottom:4px;
+    position:relative;overflow:hidden;
+  }
+  .day-banner::after{
+    content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;
+    background:radial-gradient(circle, rgba(232,176,92,0.25), transparent 70%);
+  }
+  .day-banner .num{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ocre);font-weight:700;
+  }
+  .day-banner h2{margin:2px 0 4px;font-size:1.5rem;}
+  .day-banner .base{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12.5px;color:#D9E5DC;
+  }
+  .narrative{
+    font-style:italic;color:var(--gris);font-size:14.5px;line-height:1.55;
+    margin:14px 2px 18px;
+  }
+
+  /* ---------- STOP CARD ---------- */
+  .stop{
+    background:#fff;border-radius:14px;overflow:hidden;margin-bottom:16px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+    border:1px solid var(--crema-osc);
+  }
+  .stop img{width:100%;height:170px;object-fit:cover;display:block;background:var(--crema-osc);}
+  .stop-body{padding:14px 16px 16px;}
+  .stop-time{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    display:inline-block;background:var(--ocre);color:var(--verde);
+    font-weight:700;font-size:11.5px;padding:3px 9px;border-radius:6px;margin-bottom:8px;
+  }
+
+  .stop-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .visited-toggle{
+    display:flex;align-items:center;gap:5px;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11.5px;font-weight:700;color:var(--gris);user-select:none;
+  }
+  .visited-toggle input{width:16px;height:16px;accent-color:var(--verde-claro);}
+  .visited-toggle input:checked ~ span{color:var(--verde-claro);}
+  .stop.is-visited{border-color:var(--verde-claro);background:#FBFBF6;}
+  .stop.is-visited img{filter:saturate(0.55) brightness(0.92);}
+  .stop.is-visited .stop-time{background:var(--verde-claro);color:#fff;}
+  .stop-visited-badge{
+    display:none;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    position:absolute;top:10px;right:10px;background:var(--verde-claro);color:#fff;
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.25);
+  }
+  .stop.is-visited .stop-visited-badge{display:inline-block;}
+  .stop{position:relative;}
+  .stop h3{margin:0 0 6px;font-size:1.15rem;color:var(--verde);}
+  .stop .desc{font-size:14px;line-height:1.55;color:var(--texto);margin:0 0 10px;}
+
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+  .badge{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;font-weight:600;color:var(--verde-claro);
+    background:var(--crema);border:1px solid var(--crema-osc);
+    padding:3px 8px;border-radius:6px;
+  }
+
+  .pill-toggle{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12px;font-weight:600;color:var(--terracota);
+    background:none;border:none;padding:0;cursor:pointer;
+    display:flex;align-items:center;gap:5px;margin-top:6px;
+  }
+  .pill-toggle .arrow{transition:transform .2s;}
+  .pill-toggle.open .arrow{transform:rotate(90deg);}
+
+  .extra{
+    display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--crema-osc);
+  }
+  .extra.open{display:block;}
+  .extra .block{margin-bottom:10px;}
+  .extra .block:last-child{margin-bottom:0;}
+  .extra .label{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;
+    color:var(--terracota);margin-bottom:3px;display:flex;align-items:center;gap:5px;
+  }
+  .extra .label.tip{color:var(--verde-claro);}
+  .extra .label.hist{color:var(--indigo);}
+  .extra .label.acc{color:#1F6B8C;}
+  .extra .label.check{color:var(--terracota);}
+  .extra .label.winter{color:#1F6B8C;}
+  .winter-block{
+    background:#EEF5F8;border-radius:8px;padding:8px 10px;
+    border:1px solid #D5E6EC;margin-bottom:10px !important;
+  }
+  .extra .label.schedule{color:var(--verde-claro);}
+  .schedule-block{
+    background:#F0F6EF;border-radius:8px;padding:8px 10px;
+    border:1px solid #DCE9D9;margin-bottom:10px !important;
+  }
+  .schedule-block .schedule-row{font-size:12px;color:var(--texto);line-height:1.6;}
+  .schedule-block .schedule-note{font-size:10.5px;color:var(--gris);font-style:italic;margin-top:6px;}
+  .extra .label.road{color:var(--terracota);}
+  .road-status-block{
+    background:#FBF1E8;border-radius:8px;padding:8px 10px;
+    border:1px solid #F0DCC4;margin-bottom:10px !important;
+  }
+  .road-status-block p{font-size:12px;color:var(--texto);line-height:1.5;margin:0 0 6px;}
+  .road-status-block .road-contacts{font-size:11px;color:var(--gris);line-height:1.6;}
+
+  .stop-checklist{display:flex;flex-direction:column;gap:6px;}
+  .check-item-mini{
+    display:flex;align-items:flex-start;gap:8px;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .check-item-mini input{width:16px;height:16px;margin-top:1px;accent-color:var(--terracota);flex:0 0 auto;}
+  .check-item-mini span{font-size:12.5px;color:var(--gris);line-height:1.4;}
+  .check-item-mini input:checked + span{color:var(--verde);text-decoration:line-through;}
+
+  .stop-progress{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;font-weight:700;color:var(--terracota);
+    background:var(--crema);border:1px solid var(--crema-osc);border-radius:6px;
+    padding:3px 8px;display:inline-block;margin-bottom:4px;
+  }
+  .extra p{font-size:13px;line-height:1.5;color:var(--gris);margin:0;}
+
+  /* ---------- TIPS PAGE ---------- */
+  .tip-card{
+    background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;
+    border-left:4px solid var(--ocre);box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  }
+  .tip-card h4{margin:0 0 4px;color:var(--verde);font-size:1rem;}
+  .tip-card p{margin:0;font-size:13.5px;color:var(--gris);line-height:1.5;}
+
+  /* ---------- SUB-TABS (Tips / Historia) ---------- */
+  .subtab-bar{display:flex;gap:8px;margin:4px 0 18px;}
+  .subtab{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    flex:1;padding:9px 0;border-radius:10px;border:1.5px solid var(--crema-osc);
+    background:#fff;color:var(--gris);font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .subtab.active{background:var(--verde);border-color:var(--verde);color:#fff;}
+
+  /* ---------- HISTORIA ---------- */
+  .era-block{
+    background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;
+    border:1px solid var(--crema-osc);box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  }
+  .era-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .era-icon{font-size:22px;flex:0 0 auto;line-height:1.3;}
+  .era-period{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;
+    color:var(--terracota);margin-bottom:2px;
+  }
+  .era-title{margin:0;font-size:1.08rem;color:var(--verde);line-height:1.3;}
+  .era-text p{font-size:14px;line-height:1.62;color:var(--texto);margin:0 0 12px;}
+  .era-text p:last-child{margin-bottom:0;}
+
+  /* ---------- CHECKLIST ---------- */
+  .check-item{
+    display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;
+    padding:12px 14px;margin-bottom:8px;border:1px solid var(--crema-osc);cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .check-item input{width:19px;height:19px;accent-color:var(--terracota);}
+  .check-item span{font-size:14px;}
+  .check-item.done span{color:var(--gris);text-decoration:line-through;}
+
+  /* ---------- CURIOSITY BANNER ---------- */
+  .curio-banner{
+    background:linear-gradient(135deg, var(--indigo), #3a3868);
+    color:#fff;border-radius:14px;padding:16px 18px;margin:16px 0;
+    font-size:13.5px;line-height:1.55;
+  }
+  .curio-banner .label{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ocre);
+    font-weight:700;margin-bottom:6px;
+  }
+
+  /* ---------- FOOTER NAV ---------- */
+  .bottomnav{
+    position:fixed;bottom:0;left:0;right:0;z-index:5000;
+    background:#fff;border-top:1px solid var(--crema-osc);
+    display:flex;justify-content:space-around;
+    padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+  }
+  .nav-btn{
+    background:none;border:none;display:flex;flex-direction:column;align-items:center;
+    gap:3px;color:var(--gris);font-size:10.5px;font-weight:600;cursor:pointer;flex:1;
+  }
+  .nav-btn .ic{font-size:19px;}
+  .nav-btn.active{color:var(--terracota);}
+
+  .install-banner{
+    display:none;
+    background:var(--ocre);color:var(--verde);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12.5px;font-weight:600;text-align:center;padding:9px 14px;
+  }
+  .install-banner.show{display:block;}
+  .install-banner button{
+    margin-left:10px;background:var(--verde);color:#fff;border:none;border-radius:6px;
+    padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;
+  }
+
+  .section-title{
+    font-size:1.4rem;color:var(--verde);margin:6px 0 4px;
+  }
+  .section-sub{font-size:13px;color:var(--gris);margin:0 0 16px;font-style:italic;}
+
+  /* ---------- AJUSTES ---------- */
+  .ajustes-group{margin-bottom:20px;}
+  .ajustes-group-title{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--gris);margin:0 0 10px;
+  }
+  .ajustes-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;
+    border:1px solid var(--crema-osc);
+  }
+  .ajustes-row-label{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:14px;color:var(--texto);
+  }
+  .ajustes-stepper{display:flex;align-items:center;gap:10px;}
+  .ajustes-step-btn{
+    width:34px;height:34px;border-radius:8px;border:none;
+    background:var(--verde);color:#fff;font-size:18px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .ajustes-step-val{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-weight:700;font-size:14px;color:var(--verde);min-width:48px;text-align:center;
+  }
+  .ajustes-toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;
+    border:1px solid var(--crema-osc);cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:14px;color:var(--texto);
+  }
+  .ajustes-toggle-row input[type=checkbox]{
+    width:20px;height:20px;accent-color:var(--terracota);cursor:pointer;
+  }
+  .ajustes-reset-btn{
+    width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--crema-osc);
+    background:#fff;color:var(--gris);font-size:14px;font-weight:700;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    margin-top:4px;
+  }
+  .ajustes-reset-desc{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12.5px;color:var(--gris);line-height:1.5;margin:0 0 10px;
+  }
+  .ajustes-reset-all-btn{
+    width:100%;padding:13px;border-radius:12px;border:1.5px solid #C0392B;
+    background:#fff;color:#C0392B;font-size:14px;font-weight:700;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .ajustes-confirm{
+    background:#FEF0EE;border-radius:12px;padding:14px;margin-top:10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:13px;color:var(--texto);border:1px solid #F5C6C0;
+  }
+  .ajustes-confirm-cancel{
+    flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--crema-osc);
+    background:#fff;color:var(--gris);font-size:13px;font-weight:700;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .ajustes-confirm-ok{
+    flex:1;padding:10px;border-radius:10px;border:none;
+    background:#C0392B;color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+
+  /* ---------- CLIMA ---------- */
+  .clima-loading{text-align:center;color:var(--gris);padding:30px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;}
+  .clima-city-title{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--gris);margin:18px 0 10px;border-left:3px solid var(--ocre);padding-left:10px;
+  }
+  .clima-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:6px;}
+  .clima-card{
+    background:#fff;border-radius:12px;border:1px solid var(--crema-osc);
+    overflow:hidden;cursor:pointer;
+  }
+  .clima-card-header{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;
+  }
+  .clima-date{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:13px;font-weight:700;color:var(--verde);flex:1;
+  }
+  .clima-date-sub{font-size:11px;font-weight:400;color:var(--gris);}
+  .clima-icon{font-size:28px;flex:0 0 auto;}
+  .clima-temps{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    text-align:right;flex:0 0 auto;
+  }
+  .clima-max{font-size:16px;font-weight:800;color:var(--terracota);}
+  .clima-min{font-size:13px;color:var(--gris);}
+  .clima-detail{
+    display:none;padding:0 14px 12px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12.5px;color:var(--gris);
+    border-top:1px solid var(--crema-osc);
+  }
+  .clima-card.open .clima-detail{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:10px;}
+  .clima-detail-item{display:flex;flex-direction:column;gap:2px;}
+  .clima-detail-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--gris);}
+  .clima-detail-val{font-size:13px;font-weight:700;color:var(--texto);}
+  .clima-desc{font-size:12px;color:var(--gris);font-style:italic;padding:6px 14px 10px;border-top:1px dashed var(--crema-osc);}
+  .clima-disclaimer{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11px;color:var(--gris);font-style:italic;
+    background:var(--crema);border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.5;
+  }
+  .clima-error{
+    background:#FBF1E8;border-radius:10px;padding:14px;text-align:center;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:13px;color:var(--terracota);
+  }
+
+  /* ---------- EXTRAS ---------- */
+  .extras-zone-title{
+    font-size:1rem;color:var(--verde);margin:18px 0 10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-weight:800;border-left:3px solid var(--ocre);padding-left:10px;
+  }
+  .extras-card{
+    background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px;
+    border:1px solid var(--crema-osc);box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .extras-card img{width:100%;height:140px;object-fit:cover;display:block;background:var(--crema-osc);}
+  .extras-body{padding:12px 14px 14px;}
+  .extras-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+  .extras-icon{font-size:20px;flex:0 0 auto;margin-top:1px;}
+  .extras-name{margin:0;flex:1;font-size:1rem;color:var(--verde);}
+  .extras-desc{font-size:13.5px;line-height:1.5;color:var(--texto);margin:0 0 8px;}
+  .extras-tip{
+    font-size:12.5px;color:var(--verde-claro);line-height:1.4;
+    background:var(--crema);border-radius:8px;padding:8px 10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+
+  /* ---------- ACCESSIBILITY MODES ---------- */
+  body.a11y-high-contrast{
+    --verde:#00293A;--verde-claro:#004A63;--terracota:#8B1A00;
+    --ocre:#805000;--crema:#FFFFFF;--crema-osc:#CCCCCC;
+    --texto:#000000;--gris:#222222;
+  }
+  body.a11y-dark{
+    --crema:#1C1C1C;--crema-osc:#2A2A2A;--texto:#EDEAE4;--gris:#A0A0A0;
+    background:#1C1C1C !important;
+  }
+  body.a11y-dark .stop, body.a11y-dark .tip-card, body.a11y-dark .check-item,
+  body.a11y-dark .ajustes-row, body.a11y-dark .ajustes-toggle-row,
+  body.a11y-dark .bottomnav, body.a11y-dark .tabbar{
+    background:#242424 !important; border-color:#383838 !important;
+  }
+  body.a11y-dark .day-banner{background:#0B2F40;}
+  body.a11y-reduce-motion *{
+    animation-duration:0.001ms !important;
+    transition-duration:0.001ms !important;
+  }
+
+  /* ---------- MAPA ---------- */
+  #sec-mapa{padding:0;max-width:none;display:none;flex-direction:column;}
+  #sec-mapa.active{
+    display:flex;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    height:100vh;height:100dvh;
+    z-index:2000;
+    background:var(--crema);
+    padding-bottom:calc(64px + env(safe-area-inset-bottom));
+  }
+  .map-day-filter{
+    flex:0 0 auto;
+    display:flex;gap:6px;overflow-x:auto;padding:10px 14px;background:var(--crema);
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .map-day-filter::-webkit-scrollbar{display:none;}
+  .map-chip{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    flex:0 0 auto;padding:6px 13px;border-radius:99px;font-size:12.5px;font-weight:600;
+    border:1px solid var(--crema-osc);background:#fff;color:var(--gris);cursor:pointer;
+  }
+  .map-chip.active{background:var(--terracota);color:#fff;border-color:var(--terracota);}
+  #leafletMap{
+    width:100%;
+    flex:1 1 auto;
+    min-height:300px;background:var(--crema-osc);
+    touch-action:pan-x pan-y;
+    overscroll-behavior:contain;
+  }
+  .leaflet-popup-content{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  .popup-time{color:var(--terracota);font-weight:700;font-size:11px;}
+  .popup-name{color:var(--verde);font-weight:700;font-size:13.5px;margin:2px 0 3px;}
+  .popup-desc{font-size:12px;color:var(--gris);line-height:1.4;margin:0;}
+  .day-marker-icon{
+    background:var(--verde);color:#fff;border-radius:50%;width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;
+    border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+
+  /* ================= PUERTO MADRYN: ESTILOS NUEVOS ================= */
+
+  /* ---------- FOTOS (Wikimedia Commons, con respaldo de ícono) ---------- */
+  .photo{
+    position:relative;height:170px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, var(--verde), var(--verde-claro));
+    background-size:cover;background-position:center;overflow:hidden;
+  }
+  .photo-ico{font-size:52px;opacity:0.9;}
+  .photo.has-img{background-color:var(--crema-osc);}
+  .photo-credit{
+    position:absolute;right:6px;bottom:6px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10px;line-height:1;color:#fff;background:rgba(0,0,0,0.5);
+    padding:4px 7px;border-radius:6px;text-decoration:none;
+  }
+  .extras-photo{height:140px;}
+  .hero .photo.hero-photo{
+    position:absolute;inset:0;height:100%;opacity:0.55;background-color:var(--verde);
+  }
+  .hero .photo.hero-photo .photo-ico{font-size:72px;opacity:0.35;}
+  .stop.is-visited .photo{filter:saturate(0.55) brightness(0.92);}
+
+  /* ---------- BLOQUE "CÓMO LLEGAR" ---------- */
+  .extra .label.how{color:#1F6B8C;}
+  .how-block{
+    background:#EEF5F8;border-radius:8px;padding:8px 10px;
+    border:1px solid #D5E6EC;margin-bottom:10px !important;
+  }
+
+  /* ---------- FAUNA: ESTADOS ---------- */
+  .fauna-chip, .fauna-badge{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;display:inline-block;
+  }
+  .st-yes{background:#DDEFE3;color:#1F5A3A;border-color:#BFDDC8;}
+  .st-maybe{background:#FBEFD0;color:#7A5A12;border-color:#EBD79F;}
+  .st-no{background:#ECE8E1;color:#6B6660;border-color:#DAD4C8;}
+  .badge.fauna-badge{border:1px solid transparent;border-radius:6px;}
+
+  .fauna-summary{
+    background:#fff;border:1px solid var(--crema-osc);border-radius:14px;
+    padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .fauna-sum-title{font-size:13px;font-weight:800;color:var(--verde);}
+  .fauna-sum-sub{font-size:11.5px;color:var(--gris);margin:2px 0 8px;}
+  .fauna-sum-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px dashed var(--crema-osc);}
+  .fauna-sum-row:first-of-type{border-top:none;}
+  .fauna-sum-name{font-size:13px;color:var(--texto);}
+  .fauna-sum-note{font-size:10.5px;color:var(--gris);font-style:italic;margin-top:8px;line-height:1.45;}
+
+  /* ---------- FAUNA: TABLA POR MES ---------- */
+  .fauna-table{
+    background:#fff;border:1px solid var(--crema-osc);border-radius:12px;padding:10px;margin-bottom:10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  .fauna-row{display:grid;grid-template-columns:minmax(90px,1.6fr) repeat(12, 1fr);gap:3px;align-items:center;margin-bottom:4px;}
+  .fauna-row.head{margin-bottom:6px;}
+  .fauna-name{font-size:11px;font-weight:700;color:var(--verde);line-height:1.25;}
+  .fauna-cell{height:22px;border-radius:5px;}
+  .fauna-cell.hd{height:auto;text-align:center;font-size:10.5px;font-weight:800;color:var(--gris);background:none;}
+  .fauna-cell.hd.trip{color:var(--terracota);}
+  .fauna-cell.trip{outline:2px solid var(--terracota);outline-offset:0;}
+  .fauna-cell.hd.trip{outline:none;border-bottom:2px solid var(--terracota);}
+  .fauna-legend{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px;}
+  .fauna-legend-note{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:var(--gris);margin:0 0 14px;font-style:italic;}
+
+  /* ---------- MAPA / CLIMA ---------- */
+  .map-note{
+    flex:0 0 auto;padding:0 14px 6px;background:var(--crema);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:10.5px;color:var(--gris);font-style:italic;
+  }
+  .clima-wind{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:11.5px;color:#7A5A12;background:#FBEFD0;padding:6px 14px;
+  }
+
+  /* ---------- MODO OSCURO: TARJETAS NUEVAS ---------- */
+  body.a11y-dark .era-block, body.a11y-dark .extras-card, body.a11y-dark .clima-card,
+  body.a11y-dark .fauna-summary, body.a11y-dark .fauna-table, body.a11y-dark .subtab,
+  body.a11y-dark .modal-card{
+    background:#242424 !important;border-color:#383838 !important;
+  }
+  body.a11y-dark .how-block, body.a11y-dark .winter-block{background:#1F2A30 !important;border-color:#2C3A42 !important;}
+
+</style>
+</head>
+<body>
+
+<a href="#sections" class="skip-link">Saltar al contenido principal</a>
+
+<div class="install-banner" id="installBanner">
+  📲 Instalá esta guía en tu pantalla de inicio <button id="installBtn">Instalar</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="photo hero-photo" data-q="Puerto Madryn Golfo Nuevo costanera" aria-hidden="true"><span class="photo-ico">🐋</span></div>
+  <button id="settingsBtn" aria-label="Configurar viaje">⚙️ Configurar días</button>
+  <div class="hero-overlay">
+    <div class="eyebrow" id="heroEyebrow">Guía interactiva · 8 días</div>
+    <h1>Puerto Madryn</h1>
+    <p>Ballenas, pingüinos, lobos marinos y la huella galesa en la Patagonia. Excursiones, historia, fauna según la fecha, tips y fotos de cada parada.</p>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settingsBackdrop">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Configurar tu viaje</h3>
+    <p class="modal-sub">La app arma el itinerario según tus fechas, la hora de llegada (de tarde) y la hora de salida (de tarde). Siempre te alojás en Puerto Madryn.</p>
+
+    <label class="modal-label" for="arrivalDateInput">Fecha de llegada</label>
+    <input type="date" id="arrivalDateInput" class="modal-input">
+
+    <label class="modal-label" for="arrivalTimeInput">Hora de llegada</label>
+    <input type="time" id="arrivalTimeInput" class="modal-input">
+
+    <label class="modal-label" for="departureTimeInput">Hora de salida (último día)</label>
+    <input type="time" id="departureTimeInput" class="modal-input">
+
+    <label class="modal-label">¿Cuántos días en total?</label>
+    <div class="day-stepper">
+      <button id="dayMinus" class="stepper-btn" aria-label="Menos días">−</button>
+      <span id="dayCount">8</span>
+      <button id="dayPlus" class="stepper-btn" aria-label="Más días">+</button>
+    </div>
+    <p class="modal-hint">Rango disponible: 6 a 8 días.</p>
+    <p class="modal-hint" id="departurePreview"></p>
+
+    <div class="modal-actions">
+      <button id="settingsCancel" class="modal-btn-secondary">Cancelar</button>
+      <button id="settingsApply" class="modal-btn-primary">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<div id="sections"></div>
+
+<nav class="bottomnav" aria-label="Secciones de la guía">
+  <button class="nav-btn active" data-target="itinerario" aria-current="page"><span class="ic" aria-hidden="true">🗺️</span>Itinerario</button>
+  <button class="nav-btn" data-target="mapa"><span class="ic" aria-hidden="true">📍</span>Mapa</button>
+  <button class="nav-btn" data-target="clima"><span class="ic" aria-hidden="true">🌤️</span>Clima</button>
+  <button class="nav-btn" data-target="extras"><span class="ic" aria-hidden="true">✨</span>Extras</button>
+  <button class="nav-btn" data-target="tips"><span class="ic" aria-hidden="true">🎒</span>Tips</button>
+  <button class="nav-btn" data-target="checklist"><span class="ic" aria-hidden="true">✅</span>Lista</button>
+  <button class="nav-btn" data-target="ajustes"><span class="ic" aria-hidden="true">⚙️</span>Ajustes</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+/* ===================== DATA: DÍAS ===================== */
+/* Campos de cada parada:
+   time, name, lat, lng, q (búsqueda de foto en Wikimedia Commons), ico (emoji de respaldo),
+   desc, history, curiosity, tip, seasonTip, how, duration, price, access, wildlife[], checklist[] */
+
+const BLOCKS = [
+  /* ---------------------------------------------------------------- DÍA 1 */
+  {
+    id:"d1", title:"Llegada y primer paseo por la costa", base:"Puerto Madryn",
+    narrative:"Llegada por la tarde a Puerto Madryn. Sin apuros: traslado al alojamiento, primer paseo por la costanera al atardecer y una cena tranquila. Las excursiones grandes empiezan mañana.",
+    stops:[
+      {
+        time:"15:00", name:"Llegada al aeropuerto de Trelew y traslado a Madryn",
+        lat:-43.2105, lng:-65.2703, ico:"✈️", q:"Aeropuerto Almirante Zar Trelew",
+        desc:"Llegás al aeropuerto de Trelew (REL, Almirante Marcos A. Zar), que es el que recibe los vuelos regulares de la zona. Desde ahí a Puerto Madryn son unos 65 km por la Ruta 3, alrededor de 1 hora en auto o transfer. Hay vuelos desde Buenos Aires.",
+        history:"En 1865 los colonos galeses tardaron 61 días de navegación en llegar a este mismo golfo a bordo del Mimosa. Hoy el viaje desde Buenos Aires lleva un par de horas.",
+        curiosity:"Puerto Madryn se presenta como la Capital Nacional del Buceo y es la puerta de entrada a Península Valdés, Patrimonio de la Humanidad desde 1999.",
+        tip:"Reservá el transfer o remís con anticipación (muchos alojamientos y empresas lo ofrecen y esperan con tu nombre) o alquilá un auto en la terminal. Hay también micros de línea Trelew–Madryn desde la terminal de Trelew, pero el aeropuerto queda a unos kilómetros del centro de la ciudad. Confirmá opciones y tarifas antes de viajar.",
+        how:"Transfer o remís (≈1 h) directo al alojamiento. Con auto alquilado: Ruta 3 hacia el sur, bien señalizada.",
+        duration:"≈1 h de traslado + trámites del aeropuerto", price:"Transfer/remís (consultar tarifa)",
+        access:"Confirmá el precio mostrando la dirección del alojamiento en el celular: no depende de conversar.",
+        checklist:["Dirección del alojamiento guardada en el celular","Transfer o remís reservado (o auto alquilado)","Confirmar horario de check-in","Abrigo a mano: el viento se siente apenas bajás"]
+      },
+      {
+        time:"16:30", name:"Check-in en Puerto Madryn",
+        lat:-42.7692, lng:-65.0386, ico:"🏨", q:"Puerto Madryn panorámica costanera",
+        desc:"Ciudad de unos 100.000 habitantes sobre el Golfo Nuevo y base de todas las excursiones. Conviene alojarse cerca de la costanera: desde ahí se camina a casi todo y muchas agencias pasan a buscarte por el hotel.",
+        history:"El nombre recuerda a Love Jones Parry, barón de Madryn en Gales, que visitó la zona en 1863 con Lewis Jones para evaluar una colonia galesa. La ciudad creció recién en la década de 1880, con el ferrocarril a Trelew.",
+        curiosity:"En galés la ciudad se llama Porth Madryn.",
+        tip:"Pedile al alojamiento que te ayude a coordinar los pick-up de las excursiones de los próximos días y a reservar con anticipación.",
+        seasonTip:"En temporada de ballenas y en pleno verano es cuando más se llena la ciudad: reservá alojamiento y excursiones con tiempo.",
+        duration:"—", price:"Según alojamiento",
+        access:"Ciudad llana y caminable, con cartelería clara en la costanera.",
+        checklist:["Confirmar horario de check-in","Reserva a mano (impresa o en el celular)","Preguntar por pick-up de excursiones","Cargar el celular y el power bank"]
+      },
+      {
+        time:"18:30", name:"Costanera y muelle al atardecer",
+        lat:-42.7640, lng:-65.0300, ico:"🌅", q:"Puerto Madryn muelle Luis Piedrabuena",
+        desc:"Primer paseo por la costanera: playa urbana, vista abierta al golfo y el muelle Luis Piedrabuena, el que recibe cruceros.",
+        history:"El muelle Almirante Storni, más al sur, atiende cargas de minería y de la planta de aluminio ALUAR, instalada en 1974.",
+        curiosity:"ALUAR es la única productora de aluminio primario del país.",
+        tip:"Llevá un cortaviento: el viento patagónico se hace sentir sobre la costa aun en verano.",
+        seasonTip:"El sol se pone alrededor de las 21 h en diciembre-enero y cerca de las 17:30 en junio-julio: ajustá el horario del paseo.",
+        duration:"1 h", price:"Gratis",
+        access:"Paseo llano y pavimentado, sin escalones.",
+        checklist:["Cortaviento","Cámara para el atardecer","Protector solar si todavía hay sol"]
+      },
+      {
+        time:"21:00", name:"Cena de pescados y mariscos",
+        lat:-42.7685, lng:-65.0330, ico:"🍽️", q:"Puerto Madryn atardecer playa",
+        desc:"Primera cena en la costanera: buen lugar para probar pescado fresco, mariscos y cordero patagónico. Los restaurantes del centro suelen cenar tarde (de las 21 h en adelante).",
+        tip:"Reservá mesa si es fin de semana o temporada alta, y preguntá en el alojamiento qué lugares están abiertos el día de tu llegada: algunos cierran un día por semana.",
+        duration:"1h30-2h", price:"$$ - $$$",
+        access:"Pedí la carta en papel o en el celular para señalar los platos directamente.",
+        checklist:["Reservar mesa","Llevar abrigo liviano"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 2 */
+  {
+    id:"d2", title:"Punta Cuevas y la historia de la ciudad", base:"Puerto Madryn",
+    narrative:"Día tranquilo para entender el lugar antes de salir a la naturaleza: el sitio donde desembarcaron los colonos galeses, el homenaje a los tehuelches y el Ecocentro, que sirve de preparación para Península Valdés.",
+    stops:[
+      {
+        time:"10:00", name:"Punta Cuevas: donde desembarcaron los galeses",
+        lat:-42.7905, lng:-65.0140, ico:"⚓", q:"Punta Cuevas Puerto Madryn",
+        desc:"En el extremo sur de la costa quedan las cuevas de arenisca donde se refugiaron los primeros colonos galeses en 1865. Hoy están protegidas con vallados por la erosión y se ven desde cierta distancia.",
+        history:"El 28 de julio de 1865 llegó al Golfo Nuevo el Mimosa, un antiguo clíper de té convertido en barco de pasajeros, con 153 colonos (164 contando una avanzada) tras 61 días de travesía; cuatro niños murieron en el mar y dos nacieron durante el viaje. No había casas ni agua dulce: mujeres y niños se refugiaron en cuevas mientras los hombres buscaban agua y comida a pie.",
+        curiosity:"El desembarco se celebra cada 28 de julio como Gwyl y Glaniad, el Festival del Arribo.",
+        tip:"Es un tramo largo de costanera hacia el sur: si no querés caminarlo, una bici de alquiler o un remís corto resuelven la distancia desde el centro.",
+        duration:"1 h", price:"Gratis",
+        access:"Paseo al aire libre, sin necesidad de guía hablado.",
+        checklist:["Calzado cómodo","Cortaviento","Cámara o binoculares"]
+      },
+      {
+        time:"11:30", name:"Museo del Desembarco",
+        lat:-42.7895, lng:-65.0155, ico:"🏛️", q:"Museo del Desembarco Puerto Madryn",
+        desc:"Museo dedicado a la llegada de los galeses y a los primeros años de la colonia, en la zona de Punta Cuevas (confirmá dirección y horario antes de ir).",
+        history:"Los colonos sobrevivieron los primeros inviernos gracias a un trueque con los tehuelches (aonikenk): pan galés por carne de guanaco, huevos de ñandú y mantas de piel. Además les enseñaron a cazar con boleadoras y a encontrar agua dulce.",
+        curiosity:"Pese a la épica de la llegada, los galeses dejaron pronto Madryn por la falta de agua dulce y se asentaron en el valle del río Chubut, donde nació Rawson en 1865.",
+        tip:"Los museos de la ciudad suelen tener horario partido y cierran algún día de la semana: verificá antes de ir.",
+        duration:"45 min - 1 h", price:"Entrada económica (consultar)",
+        access:"Objetos y paneles para recorrer a ritmo propio; confirmá si hay textos escritos en cada sala.",
+        checklist:["Confirmar horario y día de cierre","Efectivo para la entrada"]
+      },
+      {
+        time:"13:30", name:"Almuerzo en la costanera",
+        lat:-42.7770, lng:-65.0300, ico:"🍴", q:"Puerto Madryn playa costanera",
+        desc:"Almuerzo libre frente al golfo. Es un buen momento para probar rabas, pescado del día o un plato de cordero patagónico.",
+        tip:"Los restaurantes de la costanera son los más cómodos para sentarse con vista al mar; los del centro suelen tener menú del día más económico.",
+        duration:"1h30", price:"$$",
+        access:"Carta en papel o digital para señalar sin necesidad de conversar mucho.",
+        checklist:["Probar pescado del día o rabas"]
+      },
+      {
+        time:"15:30", name:"Monumento Tehuelche",
+        lat:-42.7885, lng:-65.0085, ico:"🗿", q:"Monumento Tehuelche Puerto Madryn",
+        desc:"Homenaje a los tehuelches (aonikenk), los habitantes originarios de estas tierras, en el sector sur de la costa con vista al golfo (confirmá en el alojamiento cómo llegar).",
+        history:"Los tehuelches eran cazadores nómades de guanaco y ñandú que se desplazaban por la estepa patagónica. Fueron los únicos pobladores de la zona cuando llegaron los colonos galeses, con quienes convivieron en paz.",
+        curiosity:"En lengua tehuelche, Península Valdés se llama Kaüas a Süen.",
+        tip:"Buen punto para mirar el golfo con binoculares. En temporada de ballenas conviene escanear el agua con paciencia.",
+        duration:"30-45 min", price:"Gratis",
+        access:"Mirador al aire libre; la información se lee en el lugar.",
+        checklist:["Binoculares","Cortaviento"]
+      },
+      {
+        time:"17:00", name:"Ecocentro",
+        lat:-42.7840, lng:-65.0235, ico:"🐋", q:"Ecocentro Puerto Madryn",
+        desc:"Centro de interpretación del ambiente marino y de la fauna patagónica, sobre la costa sur. Es una buena preparación para lo que vas a ver en Península Valdés.",
+        tip:"Hacelo antes de la excursión a Valdés: ayuda a reconocer especies y a entender las normas de convivencia con la fauna. Chequeá horarios y días de cierre.",
+        duration:"1h30", price:"Entrada paga (consultar)",
+        access:"Recorrido autoguiado posible; confirmá si hay cartelería escrita en cada sala.",
+        checklist:["Confirmar horario y días de cierre","Llevar efectivo o tarjeta"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 3 */
+  {
+    id:"d3", title:"Península Valdés: ballenas, elefantes y orcas", base:"Puerto Madryn",
+    narrative:"Día completo (unas 10 horas) para recorrer el área protegida más famosa de la Patagonia, Patrimonio de la Humanidad desde 1999. La mayoría de las excursiones desde Madryn salen temprano, pasan a buscarte por el hotel y hacen estas paradas en un solo día; el orden exacto depende de la época y de las mareas.",
+    stops:[
+      {
+        time:"08:00", name:"Istmo Carlos Ameghino e Isla de los Pájaros",
+        lat:-42.4000, lng:-64.4700, ico:"🦅", q:"Isla de los Pájaros Península Valdés",
+        desc:"El istmo Carlos Ameghino une la península con el continente (la entrada queda a unos 77 km de Madryn). Cerca está la reserva Isla de los Pájaros, en el golfo San José, refugio de aves marinas que se observa desde un mirador.",
+        history:"La península mide 3.625 km². Los tehuelches la llamaban Kaüas a Süen; Magallanes reconoció su costa en 1520 y Basilio Villarino la bautizó en 1778.",
+        curiosity:"Hoy hay unas 30 estancias ovejeras en la península, además de Puerto Pirámides, su único asentamiento importante, con unos 500 habitantes permanentes.",
+        tip:"La entrada a la reserva suele no estar incluida en el precio de la excursión: llevá efectivo o tarjeta. Descargá mapas offline, hay tramos sin señal.",
+        how:"Tres formas de hacerlo: excursión de día completo con pick-up en el hotel (la más práctica sin auto), micro hasta Puerto Pirámides y excursiones locales desde ahí, o auto alquilado (buena parte del circuito interno es de ripio).",
+        duration:"1 h de viaje hasta la reserva", price:"Entrada a la reserva aparte (referencia Civitatis: AR$ 20.000 argentinos / AR$ 50.000 extranjeros por adulto; puede haber cambiado)",
+        access:"El guía habla durante el trayecto: pedí el itinerario por escrito y retirá el mapa en el centro de visitantes.",
+        checklist:["Reservar la excursión con anticipación","Documento","Efectivo para la entrada","Mapas offline descargados","Protector solar, gorro y abrigo en capas"]
+      },
+      {
+        time:"10:15", name:"Puerto Pirámides y avistaje de ballenas",
+        lat:-42.5670, lng:-64.2830, ico:"🐋", wildlife:["ballenas"], q:"Puerto Pirámides ballena franca austral",
+        desc:"Único asentamiento de la península y el único lugar de Argentina habilitado para el avistaje náutico de ballena franca austral. Desde acá salen las embarcaciones que se acercan, respetando la distancia permitida, a las ballenas que vienen al golfo a aparearse y criar. También opera desde 2014 un buque semisumergible, el Yellow Submarine.",
+        history:"La localidad debe su nombre a una formación piramidal de la costa. Punta Pirámide fue declarada reserva natural en 1974.",
+        curiosity:"A comienzos del siglo XX se otorgaban concesiones para explotar loberías y elefanterías en la península; hoy esas prácticas están prohibidas.",
+        tip:"El paseo en bote (aprox. 1 h a 1h30) casi nunca está incluido en la excursión: se paga aparte y conviene reservarlo con anticipación (referencia Civitatis: AR$ 150.000 por adulto, puede haber cambiado).",
+        seasonTip:"Fuera de la temporada de ballenas (aprox. diciembre a mayo) el pueblo igual vale la pena: hay buceo, kayak, snorkel, paddle y playas como Piedra Guacha y Las Cuevas.",
+        duration:"2 h (con paseo en bote)", price:"Paseo náutico aparte",
+        access:"Los guías a bordo explican en voz alta: pedí un folleto o información escrita. El avistaje en sí es visual.",
+        checklist:["Reservar el paseo náutico","Pastilla para el mareo","Cortaviento (en el bote hace frío aun en verano)","Cámara con correa","Protector solar"]
+      },
+      {
+        time:"13:00", name:"Almuerzo en Puerto Pirámides",
+        lat:-42.5660, lng:-64.2820, ico:"🍴", q:"Puerto Pirámides playa",
+        desc:"Parada para almorzar, casi siempre por cuenta propia. Hay restaurantes en el pueblo; si preferís no perder tiempo, llevá un sándwich.",
+        tip:"Pedí rápido: en temporada el pueblo se llena a mediodía y el circuito sigue con horarios ajustados.",
+        duration:"1 h", price:"$$",
+        access:"Carta en papel o pizarra: se puede pedir señalando.",
+        checklist:["Llevar agua","Pedir rápido para no retrasar el circuito"]
+      },
+      {
+        time:"14:45", name:"Caleta Valdés: elefantes marinos y pingüinos",
+        lat:-42.3600, lng:-63.6150, ico:"🐧", wildlife:["elefantes","pinguinos"], q:"Caleta Valdés elefante marino",
+        desc:"Caleta de unos 35 km de largo sobre la costa este. Cerca de la boca, los elefantes marinos del sur descansan en la playa entre agosto y abril; en la parte media hay una colonia de pingüinos de Magallanes.",
+        history:"A comienzos del siglo XX la península tuvo concesiones para explotar loberías y elefanterías. Esa práctica hoy está prohibida y los elefantes marinos son una de sus grandes atracciones.",
+        curiosity:"Las crías de elefante marino nacen en septiembre y entran al agua a mediados de octubre. El mejor momento para ver a los machos disputar hembras es fines de septiembre y octubre.",
+        tip:"Los miradores están sobre la caleta: nunca bajes a la playa ni te acerques a los animales, están protegidos y pueden ser agresivos.",
+        seasonTip:"Entre octubre y noviembre las orcas aparecen de vez en cuando en Caleta Valdés (requiere paciencia).",
+        duration:"1 h", price:"Incluida en la entrada a la reserva",
+        access:"Miradores y senderos de tierra; cartelería informativa en el área.",
+        checklist:["Binoculares o cámara con zoom","Cortaviento","No bajar a la playa","Respetar las distancias"]
+      },
+      {
+        time:"16:15", name:"Punta Norte: lobos marinos y orcas",
+        lat:-42.0770, lng:-63.8480, ico:"🌊", wildlife:["orcas","lobos"], q:"Punta Norte Península Valdés",
+        desc:"Reserva faunística en el extremo noreste con lobos marinos de un pelo y el único apostadero continental de elefantes marinos. Es famosa porque las orcas se varan a propósito en la playa para cazar crías de lobo marino.",
+        history:"La técnica de varamiento intencional es una conducta de caza casi única en el mundo y atrae a fotógrafos y científicos.",
+        curiosity:"El fenómeno ocurre con marea alta, cuando las crías nadan sobre la rompiente: por eso conviene consultar la tabla de mareas.",
+        tip:"El público general mira desde los miradores públicos. Fotógrafos y equipos de filmación necesitan permisos especiales para el canal de ataque.",
+        seasonTip:"La temporada de varamiento va de marzo a fines de abril. El resto del año se ven lobos marinos igual, pero no ataques de orcas.",
+        duration:"45 min - 1 h", price:"Según la excursión (consultar si se paga aparte)",
+        access:"Observación desde miradores, sin necesidad de explicaciones habladas.",
+        checklist:["Tabla de mareas","Cámara con zoom","Respetar las distancias a los animales"]
+      },
+      {
+        time:"17:30", name:"Regreso a Puerto Madryn",
+        lat:-42.7692, lng:-65.0386, ico:"🚐", q:"Península Valdés paisaje",
+        desc:"Regreso al hotel. Entre las distancias de la península y las paradas, el día completo ronda las 10 horas; el regreso suele demorar entre 2 y 3 horas según el circuito y la hora de salida.",
+        tip:"Llevá abrigo y algo de comer en el micro: después de tantas horas al aire libre se agradece. Si te sobra energía, cenar cerca del hotel simplifica la noche.",
+        duration:"2-3 h de viaje", price:"Incluido en la excursión",
+        access:"Info del día en el celular para repasar las fotos y cargar batería.",
+        checklist:["Cargar el celular","Revisar fotos","Cena liviana cerca del hotel"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 4 */
+  {
+    id:"d4", title:"Lobos marinos y ballenas desde la costa", base:"Puerto Madryn",
+    narrative:"Día más liviano, con paradas cortas a pocos kilómetros de la ciudad: la lobería de Punta Loma a la mañana y la playa El Doradillo, a 15 km al norte, para ver ballenas desde la costa en temporada (mejor con marea alta).",
+    stops:[
+      {
+        time:"09:30", name:"Reserva Punta Loma: lobería",
+        lat:-42.8250, lng:-64.9500, ico:"🦭", wildlife:["lobos"], q:"Punta Loma lobos marinos Puerto Madryn",
+        desc:"Colonia de lobos marinos de un pelo sobre los acantilados, a pocos kilómetros al sur de la ciudad. Se observa desde miradores sin bajar a la playa y hay lobos todo el año.",
+        curiosity:"Los machos adultos tienen una melena en el cuello y son bastante más grandes que las hembras: la diferencia se nota a simple vista desde el mirador.",
+        tip:"La entrada a la reserva se paga aparte. La excursión guiada (unas 3 h) suele incluir una vuelta por la ciudad; por tu cuenta se resuelve bien en remís con espera.",
+        how:"Remís o taxi ida y vuelta (unos 15-20 min) o excursión de medio día con pick-up.",
+        duration:"1 h", price:"Entrada a la reserva (consultar)",
+        access:"Recorrido corto por miradores, sin necesidad de explicación hablada.",
+        checklist:["Zoom o binoculares","No bajar a la playa","Cortaviento","Protector solar"]
+      },
+      {
+        time:"11:15", name:"Cerro Avanzado: mirador",
+        lat:-42.8000, lng:-64.9550, ico:"⛰️", q:"Cerro Avanzado Puerto Madryn",
+        desc:"Mirador con vista al golfo, habitual complemento de la visita a Punta Loma (hay excursiones de medio día que combinan ambos).",
+        tip:"Confirmá con el remís o la agencia si el mirador entra en el recorrido y cuánto tiempo se quedan.",
+        duration:"30-45 min", price:"Consultar",
+        access:"Mirador al aire libre; la vista no depende de ninguna explicación.",
+        checklist:["Cámara","Cortaviento"]
+      },
+      {
+        time:"13:30", name:"Almuerzo y descanso",
+        lat:-42.7692, lng:-65.0386, ico:"🍴", q:"Puerto Madryn centro",
+        desc:"Vuelta a la ciudad para almorzar y descansar un rato antes de la tarde. Dos días de excursiones seguidas dejan cansancio; la siesta ayuda.",
+        tip:"Es una buena hora para pedir en el alojamiento la tabla de mareas del día, que decide el mejor momento para ir a El Doradillo.",
+        duration:"2 h", price:"$$",
+        access:"Pedí la tabla de mareas impresa o por foto.",
+        checklist:["Tabla de mareas de El Doradillo"]
+      },
+      {
+        time:"16:30", name:"Playa El Doradillo: ballenas desde la costa",
+        lat:-42.6500, lng:-64.9900, ico:"🐋", wildlife:["ballenas"], q:"El Doradillo ballena Puerto Madryn",
+        desc:"Playa a unos 15 km al norte de Madryn, sobre el golfo Nuevo, considerada uno de los mejores lugares del mundo para ver ballena franca austral desde la costa: en temporada se acercan a pocos metros de la orilla.",
+        history:"El Doradillo tiene guardaparques que informan y controlan el cumplimiento de las normas de convivencia con la fauna.",
+        curiosity:"En la época de cría, madres y ballenatos buscan las aguas calmas del golfo como refugio.",
+        tip:"Con marea alta las ballenas se acercan más: llegá un rato antes de la pleamar. No hay resguardo del viento, abrigate bien.",
+        seasonTip:"Fuera de la temporada de ballenas (aprox. diciembre a mayo) la playa es igual de linda para caminar y ver el atardecer, pero no esperes avistajes.",
+        how:"Unos 15 km por ruta: remís con espera, excursión de medio día o auto. No hay un micro regular confiable.",
+        duration:"1-2 h", price:"Gratis",
+        access:"Observación a simple vista desde la playa, sin guía.",
+        checklist:["Tabla de mareas","Cortaviento y gorro","Binoculares","No acercarse a las ballenas ni entrar al agua"]
+      },
+      {
+        time:"20:30", name:"Cena: pescado del día",
+        lat:-42.7685, lng:-65.0330, ico:"🍽️", q:"Puerto Madryn gastronomía",
+        desc:"Cena libre en el centro o la costanera. Aprovechá para probar algo nuevo: pescado patagónico, mariscos o cordero.",
+        tip:"Si al día siguiente hacés la excursión larga a Punta Tombo, conviene cenar temprano y acostarte con tiempo: la salida es de madrugada.",
+        duration:"1h30", price:"$$",
+        access:"Carta en papel o digital.",
+        checklist:["Cenar temprano (mañana hay salida temprano)","Dejar lista la mochila"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 5 */
+  {
+    id:"d5", title:"Pingüinos en Punta Tombo y té galés en Gaiman", base:"Puerto Madryn",
+    narrative:"Día largo (unas 12 horas) hacia el sur: la gran colonia de pingüinos de Magallanes de Punta Tombo y el pueblo galés de Gaiman. Punta Tombo está a unos 188 km de Madryn; la forma más cómoda sin auto es una excursión con pick-up en el hotel.",
+    stops:[
+      {
+        time:"07:30", name:"Ruta 3 hacia Trelew y Punta Tombo",
+        lat:-43.2489, lng:-65.3051, ico:"🛣️", q:"estepa patagónica Chubut ruta",
+        desc:"Unas 2 horas y media de viaje por la estepa patagónica: arbustos bajos, cielos enormes y, con suerte, guanacos y ñandúes al costado de la ruta. Se pasa por Trelew, a 62 km de Madryn.",
+        tip:"Llevá algo de comer y agua para el viaje, y descargá mapas y música offline: hay tramos sin señal.",
+        how:"Excursión de día completo con pick-up en el hotel, o auto alquilado (Punta Tombo está a unos 120 km de Trelew).",
+        duration:"~2h30 de viaje", price:"Excursión (consultar)",
+        access:"Con el guía hablando durante el viaje, avisá antes si preferís recibir las explicaciones por escrito.",
+        checklist:["Desayunar liviano","Agua y snack","Mapas offline","Abrigo y protector solar"]
+      },
+      {
+        time:"10:30", name:"Punta Tombo: la pingüinera",
+        lat:-44.0400, lng:-65.2000, ico:"🐧", wildlife:["pinguinos"], q:"Punta Tombo Magellanic penguins",
+        desc:"Reserva provincial con una de las mayores colonias de pingüinos de Magallanes del continente: cientos de miles de aves (unos 150.000 nidos activos contados en 2017). Pasarelas permiten caminar entre las cuevas sin pisarlas.",
+        history:"Se creó en 1972 como reserva turística natural y quedó establecida como reserva faunística provincial por ley en 1985.",
+        curiosity:"Calendario del pingüino: llegan en septiembre, cortejan en octubre, nacen los primeros pichones en noviembre y entre mediados de marzo y mediados de abril los pichones entran al mar por primera vez.",
+        tip:"Abierta de septiembre a abril (en la temporada 2024-25: de 8 a 18 h, salvo condiciones climáticas adversas). La entrada se paga aparte y tiene tarifa distinta para residentes y extranjeros: confirmá fechas de apertura y valores vigentes. Cedeles el paso a los pingüinos en las pasarelas.",
+        seasonTip:"Fuera de la temporada (aprox. mayo a agosto) la reserva suele estar cerrada y los pingüinos migran al norte: en esos meses conviene reemplazar este día por otra actividad.",
+        duration:"1h30 - 2 h", price:"Entrada aparte (consultar valor vigente)",
+        access:"Recorrido por pasarelas con cartelería; no hace falta guía hablado.",
+        checklist:["Confirmar que la reserva esté abierta en tu fecha","Efectivo o tarjeta para la entrada","Cortaviento y gorro","Protector solar","Cámara con zoom","No tocar ni acercarse a los pingüinos"]
+      },
+      {
+        time:"13:30", name:"Almuerzo en Trelew o Gaiman",
+        lat:-43.2489, lng:-65.3051, ico:"🍴", q:"Trelew centro",
+        desc:"Almuerzo después de la reserva, camino a Gaiman. En el valle hay desde parrillas hasta comida casera; si planeás el té galés, conviene almorzar liviano.",
+        tip:"El té galés es abundante: si vas a hacerlo, un almuerzo liviano o un solo plato es suficiente.",
+        duration:"1 h", price:"$$",
+        access:"Menú del día en pizarra o papel, fácil de pedir señalando.",
+        checklist:["Almorzar liviano si vas a hacer el té galés"]
+      },
+      {
+        time:"15:30", name:"Gaiman: té galés",
+        lat:-43.2900, lng:-65.4900, ico:"☕", q:"Gaiman Chubut",
+        desc:"Pueblo de colonos galeses y primer municipio del Chubut; su primera casa, de piedra, se levantó en 1874. Su costumbre más famosa es el té galés servido con una gran variedad de tortas, entre ellas la torta negra.",
+        history:"La estación de ferrocarril se levantó en 1908 (los rieles llegaron en 1909) y el túnel ferroviario es de 1914, cuando la línea se extendió hasta Las Plumas. La antigua estación aloja hoy el Museo Regional Galés.",
+        curiosity:"El té galés es una tradición de la colonia: el té con tortas se sirve generosamente, casi como una comida.",
+        tip:"Las casas de té suelen abrir por la tarde y tienen formato fijo: no hace falta pedir demasiado. Referencia de precio del té con tortas: unos AR$ 35.000 por persona (Civitatis; puede haber cambiado).",
+        duration:"1h30 - 2 h", price:"Té galés ~AR$ 35.000 por persona (referencia)",
+        access:"El servicio suele ser de formato fijo: se puede pedir y disfrutar sin mucha conversación.",
+        checklist:["Efectivo para el té y compras","Llevar apetito","Tarjeta por si no hay posnet"]
+      },
+      {
+        time:"17:00", name:"Museo Regional Galés y paseo por Gaiman",
+        lat:-43.2905, lng:-65.4895, ico:"🏛️", q:"Museo Regional Galés Gaiman estación",
+        desc:"El Museo Regional Galés funciona en la antigua estación y repasa la vida de la colonia. Cerca están la Primera Casa, el Parque El Desafío (junto al río, desde 1980) y el Museo Antropológico.",
+        history:"Gaiman nació de la colonia galesa llegada en 1865; la primera casa de piedra data de 1874. Es el primer municipio de la provincia.",
+        tip:"Si el tiempo da, caminá hasta el Parque El Desafío junto al río. Confirmá horarios del museo: suele cerrar antes del atardecer.",
+        duration:"45 min - 1 h", price:"Entrada económica (consultar)",
+        access:"Exposiciones con paneles y objetos; se puede recorrer a ritmo propio.",
+        checklist:["Confirmar horario del museo","Efectivo para la entrada"]
+      },
+      {
+        time:"18:30", name:"Regreso a Puerto Madryn",
+        lat:-42.7692, lng:-65.0386, ico:"🚐", q:"Puerto Madryn golfo Nuevo atardecer",
+        desc:"Regreso a Madryn: de Gaiman son unos 77 km, aproximadamente una hora y cuarto. Día largo: cena liviana y descanso.",
+        tip:"Si volvés tarde, pedí en el alojamiento que te dejen algo para comer o elegí un lugar cercano que cierre tarde.",
+        duration:"~1h15 de viaje", price:"Incluido en la excursión",
+        access:"Info del día para repasar y cargar el celular.",
+        checklist:["Cargar el celular","Cena liviana cerca del hotel"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 6 (opcional) */
+  {
+    id:"d6", title:"Dinosaurios en Trelew y toninas en Rawson", base:"Puerto Madryn",
+    narrative:"Día opcional al valle del río Chubut: dinosaurios en Trelew (62 km de Madryn) y la costa de Rawson, la ciudad más antigua de la colonia galesa. Si ya hiciste Gaiman el día anterior, este día suma museo, historia y mar.",
+    stops:[
+      {
+        time:"09:30", name:"Museo Paleontológico Egidio Feruglio (MEF)",
+        lat:-43.2487, lng:-65.3090, ico:"🦕", q:"Museo Paleontológico Egidio Feruglio Trelew",
+        desc:"Uno de los museos paleontológicos más importantes de Sudamérica, con restos de dinosaurios gigantes y de otras criaturas del pasado patagónico.",
+        tip:"Confirmá horarios y día de cierre antes de ir, y reservá guía o franja horaria si el museo lo permite. Referencia de entrada: AR$ 25.000 adulto (Civitatis; puede haber cambiado).",
+        duration:"1h30 - 2 h", price:"Entrada ~AR$ 25.000 adulto (referencia)",
+        access:"Salas con cartelería escrita; recorrido autoguiado posible.",
+        checklist:["Confirmar horario y día de cierre","Efectivo o tarjeta para la entrada","Cámara"]
+      },
+      {
+        time:"12:00", name:"Museo Regional Pueblo de Luis (antigua estación)",
+        lat:-43.2495, lng:-65.3085, ico:"🚂", q:"Estación de ferrocarril Trelew",
+        desc:"La antigua estación central, Monumento Histórico Nacional desde 1969, aloja el museo que cuenta la historia de la colonia galesa, de los pueblos mapuche y tehuelche y de los inicios de la ciudad. Funciona desde 1984.",
+        history:"Trelew significa Pueblo de Luis en galés (tref = pueblo, Lew = Lewis) por Lewis Jones, impulsor del ferrocarril que dio origen a la ciudad. El aniversario se toma el 20 de octubre.",
+        curiosity:"Cada fines de octubre se celebra el Eisteddfod, el festival anual de la cultura galesa en la Patagonia.",
+        tip:"Confirmá horarios del museo: algunos días solo abre por la mañana.",
+        duration:"45 min - 1 h", price:"Entrada económica (consultar)",
+        access:"Paneles, objetos y fotos para recorrer a ritmo propio.",
+        checklist:["Confirmar horario","Efectivo"]
+      },
+      {
+        time:"13:30", name:"Almuerzo en Trelew",
+        lat:-43.2489, lng:-65.3051, ico:"🍴", q:"Trelew plaza",
+        desc:"Almuerzo libre en el centro de Trelew antes de seguir hacia la costa.",
+        tip:"Trelew es mucho más grande que Gaiman: hay más variedad de comida y horarios más amplios.",
+        duration:"1 h", price:"$$",
+        access:"Carta en papel o digital.",
+        checklist:["Pedir menú del día"]
+      },
+      {
+        time:"15:30", name:"Rawson: la costa y las toninas",
+        lat:-43.3000, lng:-65.1000, ico:"🐬", q:"Rawson Chubut costa",
+        desc:"Capital de la provincia y primer pueblo fundado por los inmigrantes galeses (1865). Desde la zona de Rawson salen paseos náuticos para ver toninas overas, los pequeños delfines blancos y negros.",
+        history:"Rawson lleva el nombre de Guillermo Rawson (1821-1890), ministro del Interior que apoyó la colonia galesa.",
+        curiosity:"Las toninas overas se ven en pocos lugares del país y suelen acercarse a los barcos.",
+        tip:"El paseo náutico se paga aparte y depende del clima y el viento. Referencia de precio: entre AR$ 130.000 y 170.000 por adulto (Civitatis; puede haber cambiado).",
+        duration:"1-2 h", price:"Paseo náutico aparte",
+        access:"Los guías explican en voz alta; el avistaje es visual.",
+        checklist:["Reservar el paseo","Abrigo cortaviento","Pastilla para el mareo"]
+      },
+      {
+        time:"17:30", name:"Playa Unión y regreso",
+        lat:-43.3167, lng:-65.0333, ico:"🌅", q:"Playa Unión Rawson",
+        desc:"Balneario de Rawson sobre el Atlántico, buen cierre del día antes de volver a Madryn.",
+        tip:"El regreso a Madryn lleva aproximadamente una hora; calculá volver antes de que oscurezca.",
+        duration:"1h30", price:"Gratis",
+        access:"Paseo costero al aire libre.",
+        checklist:["Cortaviento","Cargar el celular"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 7 (opcional) */
+  {
+    id:"d7", title:"Día de mar y tiempo libre", base:"Puerto Madryn",
+    narrative:"Día flexible, sin traslados largos. Madryn se presenta como la Capital Nacional del Buceo: si querés, hacé un bautismo de buceo o una salida de snorkel; si no, usalo para descansar y repetir lo que más te haya gustado.",
+    stops:[
+      {
+        time:"10:00", name:"Buceo o snorkel en el Golfo Nuevo",
+        lat:-42.7900, lng:-65.0100, ico:"🤿", q:"buceo Puerto Madryn",
+        desc:"Hay bautismos de buceo para principiantes y salidas de snorkel; algunas agencias ofrecen nadar cerca de lobos marinos. Reservá solo con agencias habilitadas.",
+        tip:"El agua es fría gran parte del año y se usan trajes especiales. Reservá con anticipación y avisá a la agencia cualquier condición de salud o necesidad de comunicación.",
+        seasonTip:"En invierno el agua es muy fría y algunas salidas se suspenden por viento o clima.",
+        duration:"2-4 h", price:"Según agencia ($$$)",
+        access:"El briefing de seguridad suele ser verbal: avisá antes a la agencia para que te lo expliquen por escrito o con señas acordadas.",
+        checklist:["Reservar con agencias habilitadas","Avisar condiciones de salud","Toalla y ropa seca","Protector solar"]
+      },
+      {
+        time:"14:00", name:"Almuerzo y tarde libre",
+        lat:-42.7692, lng:-65.0386, ico:"🍴", q:"Puerto Madryn playa",
+        desc:"Tarde sin agenda: ideal para repetir un lugar que te haya gustado, caminar por el centro, hacer compras o descansar.",
+        tip:"Si querés volver a un lugar que te gustó, este es el día. Hacé las últimas compras de recuerdos ahora para que la última mañana quede libre.",
+        duration:"Tarde libre", price:"Variable",
+        access:"Ciudad llana y caminable.",
+        checklist:["Compras de recuerdos","Descanso"]
+      },
+      {
+        time:"17:30", name:"Costanera en bici al atardecer",
+        lat:-42.7700, lng:-65.0310, ico:"🚲", q:"Puerto Madryn bicicleta costanera",
+        desc:"Paseo en bici o caminata larga por la costanera, buen cierre antes de la última cena.",
+        tip:"Si alquilás bici, elegí una con candado y casco; el viento puede ser fuerte en el tramo sur.",
+        duration:"1-2 h", price:"Alquiler (consultar)",
+        access:"Costanera plana, sin pendientes.",
+        checklist:["Casco","Cortaviento"]
+      },
+      {
+        time:"20:30", name:"Cena de despedida",
+        lat:-42.7685, lng:-65.0330, ico:"🍽️", q:"Puerto Madryn gastronomía",
+        desc:"Cena de cierre del viaje. Probá lo que te quedó pendiente: pescado, mariscos, cordero o algún postre regional.",
+        tip:"Reservá mesa con tiempo si querés un lugar puntual.",
+        duration:"1h30-2h", price:"$$ - $$$",
+        access:"Carta en papel o digital.",
+        checklist:["Reservar mesa"]
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------- DÍA 8 (salida) */
+  {
+    id:"d8", title:"Última mañana y salida", base:"Puerto Madryn — salida por la tarde",
+    narrative:"Último día: mañana libre para compras y un último paseo por la costa, almuerzo de despedida y traslado al aeropuerto de Trelew con margen.",
+    stops:[
+      {
+        time:"09:30", name:"Última vuelta por la costanera y compras",
+        lat:-42.7692, lng:-65.0386, ico:"🛍️", q:"Puerto Madryn costanera",
+        desc:"Mañana libre: un café frente al golfo, compras de recuerdos y artesanías, y una última foto del mar.",
+        tip:"Dejá la valija lista antes de salir: muchos alojamientos guardan el equipaje después del check-out.",
+        duration:"2 h", price:"Variable",
+        access:"Ciudad llana y caminable.",
+        checklist:["Dejar la valija armada","Check-out y guardar equipaje","Comprar recuerdos"]
+      },
+      {
+        time:"12:30", name:"Almuerzo de despedida",
+        lat:-42.7685, lng:-65.0330, ico:"🍴", q:"Puerto Madryn marisco plato",
+        desc:"Último almuerzo del viaje. Pedí lo que no llegaste a probar.",
+        tip:"No te pases del horario: calculá siempre el traslado al aeropuerto con margen.",
+        duration:"1h15", price:"$$",
+        access:"Carta en papel o digital.",
+        checklist:["Pedir la cuenta con tiempo"]
+      },
+      {
+        time:"13:30", name:"Traslado al aeropuerto de Trelew",
+        lat:-43.2105, lng:-65.2703, ico:"✈️", q:"Aeropuerto Almirante Zar Trelew",
+        desc:"El aeropuerto de Trelew (REL) queda a unos 65 km de Puerto Madryn, alrededor de 1 hora por la Ruta 3. Conviene llegar al menos 2 horas antes de la salida, así que se sale del alojamiento unas 3 h 30 antes del vuelo.",
+        tip:"Reservá el transfer o remís con anticipación y confirmá la hora de busca el día anterior. Con auto alquilado, calculá la devolución y la carga de combustible.",
+        duration:"≈1 h de viaje", price:"Transfer/remís (consultar)",
+        access:"Tené el código de reserva en el celular y el DNI a mano.",
+        checklist:["DNI","Tarjeta de embarque o código","Cargador a mano","Confirmar el transfer/remís (o devolver el auto)","Revisar que no quede nada en el alojamiento"]
+      }
+    ]
+  }
+];
+
+/* ===================== DATA: FAUNA, EXTRAS, TIPS, CHECKLIST, HISTORIA ===================== */
+
+/* Calendario de fauna. Estado por mes (enero=1 ... diciembre=12): 2 = en temporada, 1 = posible / inicio o fin, 0 = fuera de temporada */
+const FAUNA = {
+  ballenas:{
+    ico:"🐋", label:"Ballena franca austral",
+    m:{1:0,2:0,3:0,4:0,5:1,6:2,7:2,8:2,9:2,10:2,11:2,12:1},
+    note:"Llegan a comienzos de mayo y se van a comienzos de diciembre. Se ven desde barcos en Puerto Pirámides y desde la costa en El Doradillo, mejor con marea alta."
+  },
+  pinguinos:{
+    ico:"🐧", label:"Pingüino de Magallanes",
+    m:{1:2,2:2,3:2,4:1,5:0,6:0,7:0,8:0,9:2,10:2,11:2,12:2},
+    note:"Llegan en septiembre; nacen los primeros pichones en noviembre; entre mediados de marzo y mediados de abril los pichones entran al mar y las colonias se vacían. Punta Tombo abre de septiembre a abril."
+  },
+  orcas:{
+    ico:"🌊", label:"Orcas (varamiento)",
+    m:{1:0,2:0,3:2,4:2,5:0,6:0,7:0,8:0,9:0,10:1,11:1,12:0},
+    note:"De marzo a fines de abril cazan lobos marinos en Punta Norte con marea alta. En octubre y noviembre hay avistajes ocasionales en Caleta Valdés, con paciencia."
+  },
+  elefantes:{
+    ico:"🦭", label:"Elefante marino",
+    m:{1:2,2:2,3:2,4:2,5:0,6:0,7:1,8:2,9:2,10:2,11:2,12:2},
+    note:"Se ven de agosto a abril (con algo en julio). El mejor momento es fines de septiembre y octubre; las crías nacen en septiembre y entran al agua a mediados de octubre."
+  },
+  lobos:{
+    ico:"🦭", label:"Lobo marino",
+    m:{1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:2,10:2,11:2,12:2},
+    note:"Se ven todo el año en Punta Loma, Punta Pirámides, Caleta Valdés y Punta Norte."
+  }
+};
+
+const EXTRAS = [
+  {
+    zone:"Puerto Madryn",
+    places:[
+      {
+        name:"Museo provincial del Hombre y el Mar",
+        q:"Museo del Hombre y el Mar Puerto Madryn", ico:"🏛️",
+        desc:"Museo provincial de la ciudad dedicado a la relación entre las personas y el mar patagónico.",
+        tip:"Confirmá horarios y días de cierre antes de ir.",
+        price:"Consultar"
+      },
+      {
+        name:"Museo municipal de Arte",
+        q:"Museo de Arte Puerto Madryn", ico:"🎨",
+        desc:"Museo de arte de la ciudad, una opción tranquila para un día de viento fuerte o lluvia.",
+        tip:"Verificá si hay muestras temporales y horarios.",
+        price:"Consultar"
+      },
+      {
+        name:"Cementerio de barcos",
+        q:"cementerio de barcos Puerto Madryn", ico:"🚢",
+        desc:"Sector de la costa donde quedaron hundidas o abandonadas varias embarcaciones: una postal particular de la ciudad portuaria.",
+        tip:"Mejor con marea baja y buena luz. Se ve desde la costa; no te acerques a lugares inestables.",
+        price:"Gratis"
+      }
+    ]
+  },
+  {
+    zone:"Península Valdés y costa",
+    places:[
+      {
+        name:"Salinas Grandes",
+        q:"Salinas Grandes Península Valdés", ico:"🧂",
+        desc:"Salinas en el interior de la península, en depresiones que llegan a 42 metros bajo el nivel del mar. Entre 1901 y 1920 funcionó un ferrocarril para explotar la sal.",
+        tip:"Suele ser parada de las excursiones de día completo: preguntá si entra en el circuito.",
+        price:"Incluida en la excursión"
+      },
+      {
+        name:"Cabo Dos Bahías (Camarones)",
+        q:"Cabo Dos Bahías pingüinos", ico:"🐧",
+        desc:"Área protegida a 28 km de Camarones, en el Parque Interjurisdiccional Marino Costero Patagonia Austral. Abre de septiembre a abril, igual que Punta Tombo.",
+        tip:"Está bastante lejos de Madryn: pensalo como un día aparte o una opción si ya sumaste Punta Tombo. Confirmá horarios y valores vigentes.",
+        price:"Entrada paga"
+      },
+      {
+        name:"Playas de Puerto Pirámides",
+        q:"Piedra Guacha Puerto Pirámides", ico:"🏖️",
+        desc:"Piedra Guacha y Las Cuevas son playas cercanas al pueblo, con buceo, kayak, snorkel y paddle como actividades habituales.",
+        tip:"Si tenés auto o contratás una excursión corta, es un buen plan alternativo a las ballenas fuera de temporada.",
+        price:"Gratis"
+      }
+    ]
+  },
+  {
+    zone:"Valle del río Chubut",
+    places:[
+      {
+        name:"Parque Paleontológico Bryn Gwyn",
+        q:"Bryn Gwyn Gaiman", ico:"🦴",
+        desc:"Sitio paleontológico a unos 10 km de Gaiman, con formaciones geológicas y fósiles de la zona.",
+        tip:"Requiere traslado desde Gaiman: preguntá en las casas de té o en la oficina de turismo cómo llegar.",
+        price:"Entrada económica (consultar)"
+      },
+      {
+        name:"Primera Casa y Parque El Desafío (Gaiman)",
+        q:"Gaiman Primera Casa Parque El Desafío", ico:"🏠",
+        desc:"La primera casa, construida en piedra en 1874, y el Parque El Desafío, junto al río desde 1980. Completan la visita al Museo Regional Galés.",
+        tip:"Se hacen a pie dentro del pueblo en poco tiempo.",
+        price:"Gratis o entrada económica"
+      },
+      {
+        name:"Eisteddfod del Chubut",
+        q:"Eisteddfod Trelew", ico:"🎶",
+        desc:"Festival anual de la cultura galesa que se celebra a fines de octubre en Trelew, con música, poesía y la presencia de invitados de todo el país y de Gales.",
+        tip:"Si tu viaje cae a fines de octubre, reservá con anticipación: es un momento de mucha actividad cultural en el valle.",
+        price:"Consultar"
+      }
+    ]
+  }
+];
+
+const TIPS = [
+  {icon:"💨", title:"El viento", body:"Madryn es ventosa casi todo el año. Un cortaviento liviano y varias capas de ropa son más útiles que una campera gruesa: la sensación térmica cambia mucho entre el sol y el viento."},
+  {icon:"🐋", title:"Fauna según la fecha", body:"Ballenas: aprox. mayo a diciembre. Pingüinos: septiembre a marzo (Punta Tombo abre de septiembre a abril). Orcas varadoras: marzo-abril. Elefantes marinos: agosto a abril. Mirá la pestaña Fauna para tus fechas."},
+  {icon:"📋", title:"Reservar con tiempo", body:"Excursiones a Valdés, paseos en bote, buceo y alojamiento se llenan en temporada alta (ballenas y verano). Reservá con anticipación y avisá si necesitás información por escrito."},
+  {icon:"🎟️", title:"Entradas aparte", body:"La entrada a la reserva de Península Valdés, el paseo náutico, la entrada a Punta Tombo y el té galés casi nunca están incluidos en el precio de la excursión: llevá efectivo y tarjeta."},
+  {icon:"🚌", title:"Sin auto propio", body:"Para Valdés, Punta Tombo y el valle del Chubut lo más práctico es una excursión con pick-up en el hotel. Madryn–Trelew son 62 km; Punta Tombo está a unos 188 km de Madryn; el acceso a Península Valdés queda a unos 77 km."},
+  {icon:"🕒", title:"Mareas", body:"Decisivas para El Doradillo (más cerca de la costa con marea alta) y para el varamiento de orcas en Punta Norte (también con marea alta). Pedí la tabla de mareas del día en el alojamiento."},
+  {icon:"🦭", title:"Respetá a los animales", body:"Mantené la distancia, no bajes a las playas, no los alimentes ni los toques, y seguí las indicaciones de guardaparques. Muchas áreas tienen normas específicas para fotos y drones: consultalas."},
+  {icon:"☀️", title:"Sol", body:"En verano el sol es fuerte y el viento engaña la sensación de calor. Protector solar, gorro y anteojos incluso en días frescos."},
+  {icon:"📶", title:"Señal", body:"Hay tramos sin cobertura en Valdés, Punta Tombo y rutas del sur. Descargá mapas offline y guardá las reservas en el celular."},
+  {icon:"💳", title:"Efectivo y tarjeta", body:"En reservas, pueblos chicos y casas de té puede no haber posnet. Llevá efectivo para entradas y compras chicas."},
+  {icon:"🍽️", title:"Horarios de comida", body:"Los restaurantes cenan tarde (desde las 21 h). En temporada conviene reservar mesa; algunos cierran un día por semana."},
+  {icon:"🧳", title:"Equipaje", body:"Una mochila chica de día con abrigo, agua, protector solar y cargador alcanza para todas las excursiones. Dejá lo demás en el alojamiento."},
+  {icon:"✈️", title:"Aeropuerto", body:"El Tehuelche queda a unos 10 km del centro. El aeropuerto de Trelew (62 km) es la alternativa si el vuelo llega allá. Llegá al menos 2 horas antes de la salida."}
+];
+
+const CHECKLIST_ITEMS = [
+  "Documento / DNI",
+  "Reserva de alojamiento en Puerto Madryn",
+  "Reserva excursión Península Valdés (día completo)",
+  "Reserva paseo en bote de avistaje de ballenas (si es temporada)",
+  "Reserva excursión Punta Tombo y Gaiman (si es temporada de pingüinos)",
+  "Confirmar horarios de museos (suelen tener horario partido)",
+  "Tabla de mareas para El Doradillo y Punta Norte",
+  "Cortaviento y capas de abrigo",
+  "Protector solar, gorro y anteojos",
+  "Calzado cómodo para caminar",
+  "Pastilla para el mareo (paseos en bote)",
+  "Binoculares o cámara con zoom",
+  "Efectivo para entradas y compras",
+  "Mapas offline descargados",
+  "Power bank / cargador",
+  "Transfer o remís coordinado para el aeropuerto de Trelew"
+];
+
+/* ===================== HISTORIA ===================== */
+const HISTORIA = [
+  {
+    icon:"🏹", period:"Hasta el siglo XVI", title:"Los pueblos originarios: aonikenk y tehuelches",
+    paragraphs:[
+      "Mucho antes de la llegada de los europeos, la costa y la estepa del actual Chubut eran territorio de los aonikenk, los tehuelches. Eran cazadores nómades de guanaco y de ñandú que se desplazaban por la estepa siguiendo a sus presas, y dominaban técnicas como las boleadoras.",
+      "La Península Valdés era conocida por ellos como Kaüas a Süen. Como no dejaron registros escritos, buena parte de lo que se sabe de su vida proviene de la arqueología, de la tradición oral y de los relatos de quienes los encontraron más tarde.",
+      "Cuando los colonos galeses desembarcaron en 1865, los tehuelches eran los únicos habitantes de la zona. Esa convivencia inicial, basada en el intercambio, fue clave para que los recién llegados sobrevivieran los primeros inviernos."
+    ]
+  },
+  {
+    icon:"⛵", period:"1520 – 1810", title:"Navegantes y la Guardia de San José",
+    paragraphs:[
+      "La expedición de Fernando de Magallanes reconoció las costas de Península Valdés en 1520. Casi tres siglos después, en 1778, Basilio Villarino bautizó la península con el nombre de un ministro español.",
+      "En el siglo XVIII los españoles fundaron en la península la Guardia de San José, un pequeño asentamiento con población en gran parte maragata. Su existencia fue breve: fue destruida en 1810 tras enfrentamientos con los aonikenk.",
+      "Durante esos siglos la costa patagónica fue sobre todo un territorio de paso y de explotación de recursos marinos, más que de poblamiento estable. Más tarde, hacia 1900, se otorgaron concesiones para explotar loberías y elefanterías en la península, práctica que hoy está prohibida."
+    ]
+  },
+  {
+    icon:"📜", period:"1863 – 1865", title:"El proyecto de la colonia galesa",
+    paragraphs:[
+      "En 1863 se gestó el proyecto de una colonia galesa en la Patagonia. Ese año Samuel Phibbs, un inglés que había trabajado dos décadas en Argentina y era cónsul honorario, publicó en Liverpool un aviso que presentaba al país como tierra de progreso y de promisión. El 21 de julio de 1863, el presidente envió al Congreso un mensaje, firmado por Guillermo Rawson, que pedía aprobar un convenio para instalar una colonia galesa al sur del río Negro.",
+      "El convenio preveía que la sociedad de inmigrantes galesa enviara entre 300 y 500 familias por año durante diez años; por cada 200 familias el gobierno cedía un municipio de dos leguas cuadradas. Los inmigrantes buscaban escapar de la pobreza, ganar libertad religiosa y preservar su lengua, su religión y su cultura, que sentían amenazadas por la absorción de Gales por Inglaterra. Michael D. Jones fue el principal impulsor de la idea.",
+      "Ese mismo año Love Jones Parry, barón de Madryn en Gales, y Lewis Jones visitaron la costa patagónica para evaluarla. El nombre de Puerto Madryn recuerda al barón."
+    ]
+  },
+  {
+    icon:"🚢", period:"1865", title:"El Mimosa y el desembarco",
+    paragraphs:[
+      "El 28 de mayo de 1865 zarpó de Liverpool el Mimosa, un antiguo clíper de té convertido en barco de pasajeros. Llevaba 153 colonos (164 si se cuenta una avanzada). La travesía duró 61 días: cuatro niños murieron en el mar y dos nacieron durante el viaje.",
+      "El 28 de julio de 1865, en pleno invierno patagónico, el Mimosa llegó al Golfo Nuevo, el actual Puerto Madryn. Los colonos encontraron una estepa semiárida, sin colinas verdes, sin casas y sin agua dulce, con viento constante. Las mujeres y los niños se refugiaron en cuevas de arenisca en el extremo sur de la costa (hoy Punta Cuevas) mientras los hombres buscaban agua y comida a pie.",
+      "Los primeros inviernos fueron de hambre: los cultivos fracasaron en un suelo árido y salino. Los tehuelches ayudaron: intercambiaron carne de guanaco, huevos de ñandú y mantas de piel por el pan que horneaban las mujeres galesas, y les enseñaron a cazar con boleadoras y a encontrar agua dulce. Cada 28 de julio se recuerda el arribo como Gwyl y Glaniad."
+    ]
+  },
+  {
+    icon:"🌾", period:"1865 – 1900", title:"Del desembarco al valle: Rawson, Gaiman y el ferrocarril",
+    paragraphs:[
+      "Por la falta de agua dulce, los colonos se trasladaron al valle del río Chubut. Rawson, fundada en 1865 y nombrada por Guillermo Rawson, fue el primer pueblo fundado por los galeses. En 1874 se levantó en Gaiman la Casa de Piedra, la primera casa del que sería el primer municipio de la provincia.",
+      "La zona de Puerto Madryn creció recién en la década de 1880. En 1881 la Armada propuso un puerto llamado Puerto Roca, pero los galpones se desarmaron tras problemas de abastecimiento. En cambio, el ferrocarril Central del Chubut, iniciado en 1886 y completado en 1888, unió Puerto Madryn con Trelew y le dio sentido al puerto. Trelew debe su nombre al impulso de Lewis Jones: significa Pueblo de Luis en galés.",
+      "Como en el resto de la Patagonia, el avance de colonos, estancias y campañas militares fue desplazando a las comunidades tehuelches de sus territorios. Sus descendientes siguen presentes en la región, y el Monumento Tehuelche de Puerto Madryn recuerda su lugar en esta historia."
+    ]
+  },
+  {
+    icon:"🚂", period:"1900 – 1970", title:"Estaciones, túneles y cultura galesa",
+    paragraphs:[
+      "En el siglo XX el valle consolidó su identidad. La estación de ferrocarril de Gaiman se levantó en 1908 y los rieles llegaron al pueblo en 1909; en 1914 se construyó el túnel ferroviario cuando la línea se extendió hasta Las Plumas. Entre 1901 y 1920 funcionó además un ferrocarril para explotar la sal de las Salinas Grandes de Península Valdés.",
+      "La cultura galesa se mantuvo viva en capillas, casas de té y en el Eisteddfod, un festival anual de música y poesía que se celebra a fines de octubre en Trelew. La antigua estación central de Trelew fue declarada Monumento Histórico Nacional en 1969 y hoy aloja el Museo Regional Pueblo de Luis, que funciona desde 1984.",
+      "El ferrocarril que había dado vida a Madryn y a Trelew dejó de funcionar para siempre en 1961."
+    ]
+  },
+  {
+    icon:"🏭", period:"1970 – 1999", title:"Industria, puerto y áreas protegidas",
+    paragraphs:[
+      "En 1974 se instaló en Puerto Madryn ALUAR, la única productora de aluminio primario del país, que impulsó el crecimiento de la ciudad y de su puerto. Los muelles se especializaron: el Luis Piedrabuena recibe cruceros y el Almirante Storni atiende cargas de minería y de la planta de aluminio. La energía eólica también es hoy significativa en la región.",
+      "En paralelo se fueron creando áreas protegidas: Punta Tombo nació en 1972 como reserva turística natural y quedó establecida como reserva faunística provincial por ley en 1985; Punta Pirámide se creó como reserva natural en 1974.",
+      "En 1999 la UNESCO declaró Patrimonio de la Humanidad a Península Valdés, un reconocimiento que consolidó a Puerto Madryn como puerta de entrada al turismo de naturaleza y como Capital Nacional del Buceo."
+    ]
+  },
+  {
+    icon:"🐋", period:"Hoy", title:"Turismo, ciencia y conservación",
+    paragraphs:[
+      "Según el censo de 2022, Puerto Madryn tiene 102.143 habitantes; Trelew, 106.214, y Gaiman, 7.755. La economía combina industria, puerto, energía y un turismo que gira en torno a la fauna: ballena franca austral desde mayo hasta diciembre, pingüinos de Magallanes entre septiembre y abril, lobos y elefantes marinos y las orcas que cazan por varamiento en Punta Norte.",
+      "Punta Tombo, con unos 150.000 nidos activos contados en 2017, es una de las mayores pingüineras del continente. El Museo Egidio Feruglio de Trelew, uno de los más importantes de Sudamérica, y las áreas protegidas de la costa sostienen una tradición de investigación y de conservación.",
+      "Cada 28 de julio la ciudad recuerda el desembarco galés, y cada fin de octubre el Eisteddfod renueva la cultura de los colonos. Mientras tanto, la costa sigue siendo lo que fue para los tehuelches: un territorio de fauna, viento y horizontes abiertos."
+    ]
+  }
+];
+
+/* ===================== PERSISTENCIA ===================== */
+/* Prefijo propio para los datos guardados en el dispositivo. */
+const appStorage = {
+  async get(key){
+    try{
+      const raw = localStorage.getItem('madryn-app:' + key);
+      return raw === null ? null : { key, value: raw };
+    }catch(e){ return null; }
+  },
+  async set(key, value){
+    try{
+      if(value === null){ localStorage.removeItem('madryn-app:' + key); return { key, value }; }
+      localStorage.setItem('madryn-app:' + key, value);
+      return { key, value };
+    }catch(e){ return null; }
+  }
+};
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ===================== FOTOS (Wikimedia Commons, buscadas al abrir) ===================== */
+/* Cada lugar tiene una búsqueda (q). Se busca una foto horizontal en Wikimedia Commons, se guarda
+   el resultado en el dispositivo y, si no aparece nada, queda un fondo con ícono. */
+const IMG_BAD = /(\bmap\b|mapa|flag|bandera|escudo|logo|locator|coat[ _]of|diagram|chart|graph|icon|symbol|poster|banner|stamp|sello|plano)/i;
+
+async function commonsSearch(term, minW){
+  const url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search'
+    + '&gsrsearch=' + encodeURIComponent(term + ' filetype:bitmap')
+    + '&gsrnamespace=6&gsrlimit=20&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=900'
+    + '&format=json&formatversion=2&origin=*';
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('http');
+  const data = await res.json();
+  const pages = (data.query && data.query.pages) || [];
+  const ok = pages.filter(p=>{
+    const i = p.imageinfo && p.imageinfo[0];
+    return i && i.mime === 'image/jpeg' && i.width >= minW && !IMG_BAD.test(p.title || '');
+  }).sort((a,b)=>(a.index||0)-(b.index||0));
+  const landscape = ok.filter(p=>p.imageinfo[0].width >= p.imageinfo[0].height);
+  const pick = landscape[0] || ok[0];
+  return pick ? { src: pick.imageinfo[0].thumburl || pick.imageinfo[0].url, page: pick.imageinfo[0].descriptionurl } : null;
+}
+
+/* Respaldo: imagen principal del artículo de Wikipedia más parecido a la búsqueda */
+async function wikiSearch(lang, term){
+  const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&generator=search'
+    + '&gsrsearch=' + encodeURIComponent(term) + '&gsrlimit=5&prop=pageimages|info&inprop=url'
+    + '&piprop=thumbnail|name&pithumbsize=900&format=json&formatversion=2&origin=*';
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('http');
+  const data = await res.json();
+  const pages = ((data.query && data.query.pages) || []).sort((a,b)=>(a.index||0)-(b.index||0));
+  const pick = pages.find(p=>p.thumbnail && p.thumbnail.source && /\.jpe?g/i.test(p.pageimage || p.thumbnail.source) && !IMG_BAD.test(p.pageimage || ''));
+  return pick ? { src: pick.thumbnail.source, page: pick.fullurl } : null;
+}
+
+/* Cadena de intentos: de lo más específico a lo más general */
+function imageAttempts(q){
+  const words = q.split(/\s+/).filter(Boolean);
+  const short = words.slice(0, 3).join(' ');
+  const list = [
+    ()=>commonsSearch(q, 900),
+    ()=>commonsSearch(q, 500),
+    ()=>wikiSearch('es', q),
+    ()=>wikiSearch('en', q)
+  ];
+  if(short && short !== q){
+    list.push(()=>commonsSearch(short, 600), ()=>wikiSearch('es', short));
+  }
+  if(!/madryn|chubut|patagonia|valdes|valdés/i.test(q)) list.push(()=>commonsSearch(q + ' Chubut', 500));
+  return list;
+}
+
+const IMG_NEG_TTL = 3 * 24 * 3600 * 1000;   // si no se encontró nada, reintenta a los 3 días
+
+async function resolveImage(q){
+  const key = 'img2:' + q;
+  const cached = await appStorage.get(key);
+  if(cached){
+    try{
+      const c = JSON.parse(cached.value);
+      if(c && c.src) return c;
+      if(c && c.miss && Date.now() - c.miss < IMG_NEG_TTL) return null;
+    }catch(e){}
+  }
+  let failed = false;
+  for(const attempt of imageAttempts(q)){
+    try{
+      const out = await attempt();
+      if(out){ await appStorage.set(key, JSON.stringify(out)); return out; }
+    }catch(e){ failed = true; }
+  }
+  if(!failed) await appStorage.set(key, JSON.stringify({ miss: Date.now() }));
+  return null;   // sin conexión o sin resultado: queda el ícono
+}
+
+function photoHTML(q, ico, name, extraClass){
+  return `<div class="photo ${extraClass || ''}" data-q="${esc(q)}" role="img" aria-label="${esc(name)}"><span class="photo-ico" aria-hidden="true">${ico || '📍'}</span></div>`;
+}
+
+async function loadPhoto(el){
+  if(el.dataset.loaded) return;
+  el.dataset.loaded = '1';
+  const info = await resolveImage(el.dataset.q);
+  if(!info || !info.src) return;
+  const img = new Image();
+  img.onload = ()=>{
+    el.style.backgroundImage = `url("${info.src}")`;
+    el.classList.add('has-img');
+    const ico = el.querySelector('.photo-ico');
+    if(ico) ico.style.display = 'none';
+    if(info.page && !el.classList.contains('hero-photo')){
+      const a = document.createElement('a');
+      a.className = 'photo-credit'; a.href = info.page; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = /wikipedia\.org/.test(info.page || '') ? '📷 Wikipedia' : '📷 Wikimedia Commons';
+      el.appendChild(a);
+    }
+  };
+  img.src = info.src;
+}
+
+let photoObserver = null;
+function observePhotos(root){
+  const els = (root || document).querySelectorAll('.photo[data-q]:not([data-loaded])');
+  if(!('IntersectionObserver' in window)){ els.forEach(loadPhoto); return; }
+  if(!photoObserver){
+    photoObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ photoObserver.unobserve(e.target); loadPhoto(e.target); }
+      });
+    }, { rootMargin:'300px' });
+  }
+  els.forEach(el=>photoObserver.observe(el));
+}
+
+/* ===================== FECHAS Y HORAS ===================== */
+function parseDateInput(str){
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(date, n){
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+function isoDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatWeekday(date){
+  const s = date.toLocaleDateString('es-AR', { weekday: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function formatWeekdayShort(date){
+  const s = date.toLocaleDateString('es-AR', { weekday: 'short' });
+  return s.charAt(0).toUpperCase() + s.slice(1).replace('.', '');
+}
+function formatDateShort(date){
+  return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }).replace('.', '');
+}
+function todayISO(){ return isoDate(new Date()); }
+const toMin = (t)=>{ const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const fromMin = (n)=>{
+  n = Math.max(0, Math.min(23 * 60 + 59, Math.round(n)));
+  return String(Math.floor(n / 60)).padStart(2,'0') + ':' + String(n % 60).padStart(2,'0');
+};
+
+/* ===================== ARMADO DEL ITINERARIO (días dinámicos, fechas reales) ===================== */
+const CORE_ORDER = ["d1","d2","d3","d4","d5","d8"];
+const OPTIONALS = [
+  { id:"d6", insertAfter:"d5" },   // Trelew y Rawson
+  { id:"d7", insertAfter:"d6" }    // día de mar
+];
+const MIN_DAYS = CORE_ORDER.length;               // 6
+const MAX_DAYS = CORE_ORDER.length + OPTIONALS.length; // 8
+
+function assembleBlockOrder(totalDays){
+  totalDays = Math.max(MIN_DAYS, Math.min(MAX_DAYS, totalDays));
+  const order = [...CORE_ORDER];
+  OPTIONALS.slice(0, totalDays - MIN_DAYS).forEach(opt=>{
+    const idx = order.indexOf(opt.insertAfter);
+    order.splice(idx + 1, 0, opt.id);
+  });
+  return order;
+}
+
+function adaptArrival(day, arrivalTime){
+  const a = toMin(arrivalTime);
+  const [transfer, checkinStop, walkStop, dinner] = day.stops;
+  transfer.time = arrivalTime;
+  const checkin = a + 120;   // equipaje + ~1 h de traslado desde Trelew
+  checkinStop.time = fromMin(checkin);
+  let note = '';
+  if(a >= 18 * 60 + 30){
+    // Llegada de noche: se omite el paseo y se pasa directo a la cena
+    dinner.time = fromMin(Math.max(21 * 60, checkin + 30));
+    day.stops = [transfer, checkinStop, dinner];
+    note = ' Como llegás ya de noche, se omite el paseo por la costanera y el día pasa directo a la cena.';
+  }else{
+    walkStop.time = fromMin(Math.max(18 * 60 + 30, checkin + 45));
+    dinner.time = fromMin(Math.max(21 * 60, toMin(walkStop.time) + 90));
+    if(a < 12 * 60) note = ' Como llegás temprano, quizá puedas dejar las valijas en el alojamiento y adelantar un paseo corto de la tarde.';
+  }
+  day.narrative = `Llegada a las ${arrivalTime} hs al aeropuerto de Trelew y traslado de 1 hora a Puerto Madryn. Sin apuros: traslado al alojamiento, primer paseo por la costanera al atardecer y una cena tranquila. Las excursiones grandes empiezan mañana.` + note;
+}
+
+function adaptDeparture(day, departureTime){
+  const d = toMin(departureTime);
+  const transfer = d - 210;                         // Trelew está a ~1 h: salir 3h30 antes
+  const lunch = Math.min(toMin('12:30'), transfer - 90);
+  const shop = Math.min(toMin('09:30'), lunch - 120);
+  const s = day.stops;
+  s[2].time = fromMin(transfer);
+  s[2].desc = `Tu vuelo sale a las ${departureTime} hs desde Trelew: conviene salir de Madryn alrededor de las ${fromMin(transfer)}. El aeropuerto queda a unos 65 km (alrededor de 1 hora por la Ruta 3) y es recomendable llegar al menos 2 horas antes.`;
+  s[1].time = fromMin(lunch);
+  s[0].time = fromMin(shop);
+  const keep = [];
+  if(shop >= 7 * 60) keep.push(s[0]);
+  if(lunch >= 10 * 60 + 30) keep.push(s[1]);
+  keep.push(s[2]);
+  day.stops = keep;
+  day.narrative = `Último día: salida a las ${departureTime} hs. Mañana libre para compras y un último paseo por la costa, almuerzo de despedida y traslado al aeropuerto de Trelew (1 hora de viaje) con margen.`;
+}
+
+function buildScheduleDays(totalDays, arrivalDateStr, arrivalTime, departureTime){
+  const order = assembleBlockOrder(totalDays);
+  const arrival = parseDateInput(arrivalDateStr);
+  const nights = order.length - 1;
+  return order.map((id, i)=>{
+    const block = BLOCKS.find(b=>b.id === id);
+    const date = addDays(arrival, i);
+    const day = {
+      ...block,
+      stops: block.stops.map(s=>({ ...s })),
+      num: i + 1,
+      date,
+      weekday: formatWeekday(date),
+      weekdayShort: formatWeekdayShort(date),
+      dateLabel: formatDateShort(date)
+    };
+    if(id === 'd1'){
+      day.base = `Puerto Madryn — ${nights} noche${nights === 1 ? '' : 's'}`;
+      if(arrivalTime) adaptArrival(day, arrivalTime);
+    }
+    if(id === 'd8' && departureTime) adaptDeparture(day, departureTime);
+    return day;
+  });
+}
+
+let tripConfig = { totalDays: 8, arrivalDate: todayISO(), arrivalTime: "15:00", departureTime: "17:00" };
+let DAYS = buildScheduleDays(tripConfig.totalDays, tripConfig.arrivalDate, tripConfig.arrivalTime, tripConfig.departureTime);
+
+function rebuildDays(){
+  DAYS = buildScheduleDays(tripConfig.totalDays, tripConfig.arrivalDate, tripConfig.arrivalTime, tripConfig.departureTime);
+}
+
+/* ===================== FAUNA SEGÚN LAS FECHAS DEL VIAJE ===================== */
+const FAUNA_ORDER = ["ballenas","pinguinos","orcas","elefantes","lobos"];
+const STATUS_LABEL = { 2:"en temporada", 1:"posible", 0:"fuera de temporada" };
+const STATUS_CLASS = { 2:"st-yes", 1:"st-maybe", 0:"st-no" };
+
+function dayMonth(i){ return addDays(parseDateInput(tripConfig.arrivalDate), i).getMonth() + 1; }
+function faunaStatusDay(key, i){ return FAUNA[key].m[dayMonth(i)]; }
+function faunaStatusTrip(key){
+  let best = 0;
+  for(let i = 0; i < DAYS.length; i++) best = Math.max(best, faunaStatusDay(key, i));
+  return best;
+}
+
+/* ===================== ACCESIBILIDAD ===================== */
+const LINE_VALUES = [1.35, 1.55, 1.8, 2.1];
+const LINE_LABELS = ['Compacto','Normal','Amplio','Muy amplio'];
+const A11Y_DEFAULTS = { fontSize:100, lineIdx:1, highContrast:false, darkMode:false, reduceMotion:false };
+let a11yState = { ...A11Y_DEFAULTS };
+
+function applyA11y(){
+  const scale = a11yState.fontSize / 100;
+  const s = document.getElementById('sections');
+  if(s) s.style.zoom = scale;
+  document.body.style.lineHeight = LINE_VALUES[a11yState.lineIdx];
+  document.body.classList.toggle('a11y-high-contrast', a11yState.highContrast);
+  document.body.classList.toggle('a11y-dark', a11yState.darkMode);
+  document.body.classList.toggle('a11y-reduce-motion', a11yState.reduceMotion);
+  syncA11yControls();
+}
+function syncA11yControls(){
+  const fv = document.getElementById('fontValue');
+  const lv = document.getElementById('lineValue');
+  const hc = document.getElementById('a11yHighContrast');
+  const dm = document.getElementById('a11yDarkMode');
+  const rm = document.getElementById('a11yReduceMotion');
+  if(fv) fv.textContent = a11yState.fontSize + '%';
+  if(lv) lv.textContent = LINE_LABELS[a11yState.lineIdx];
+  if(hc) hc.checked = a11yState.highContrast;
+  if(dm) dm.checked = a11yState.darkMode;
+  if(rm) rm.checked = a11yState.reduceMotion;
+}
+async function saveA11y(){ await appStorage.set('a11y', JSON.stringify(a11yState)); }
+async function loadA11y(){
+  try{
+    const res = await appStorage.get('a11y');
+    if(res && res.value) a11yState = { ...A11Y_DEFAULTS, ...JSON.parse(res.value) };
+  }catch(e){}
+  applyA11y();
+}
+
+/* ===================== SECCIONES ===================== */
+const sectionsRoot = document.getElementById('sections');
+
+function sectionShell(id, label){
+  const wrap = document.createElement('div');
+  wrap.className = 'section'; wrap.id = 'sec-' + id;
+  wrap.setAttribute('role','region'); wrap.setAttribute('aria-label', label); wrap.setAttribute('tabindex','-1');
+  return wrap;
+}
+
+function faunaBadgesHTML(stop, dayIdx){
+  if(!stop.wildlife || !stop.wildlife.length) return '';
+  const items = stop.wildlife.filter(k=>FAUNA[k]).map(k=>{
+    const st = faunaStatusDay(k, dayIdx);
+    return `<span class="badge fauna-badge ${STATUS_CLASS[st]}">${FAUNA[k].ico} ${FAUNA[k].label}: ${STATUS_LABEL[st]}</span>`;
+  });
+  return items.length ? `<div class="badges">${items.join('')}</div>` : '';
+}
+
+function faunaSummaryCard(){
+  const first = DAYS[0], last = DAYS[DAYS.length - 1];
+  const rows = FAUNA_ORDER.map(k=>{
+    const st = faunaStatusTrip(k);
+    return `<div class="fauna-sum-row"><span class="fauna-sum-name">${FAUNA[k].ico} ${FAUNA[k].label}</span><span class="fauna-chip ${STATUS_CLASS[st]}">${STATUS_LABEL[st]}</span></div>`;
+  }).join('');
+  const card = document.createElement('div');
+  card.className = 'fauna-summary';
+  card.innerHTML = `
+    <div class="fauna-sum-title">🐋 Fauna en tus fechas</div>
+    <div class="fauna-sum-sub">${first.weekdayShort} ${first.dateLabel} – ${last.weekdayShort} ${last.dateLabel}</div>
+    ${rows}
+    <div class="fauna-sum-note">Es un calendario general: confirmá fechas de apertura y condiciones con cada agencia o reserva. Más detalle en Tips → Fauna.</div>`;
+  return card;
+}
+
+function buildItinerarioSection(){
+  const wrap = sectionShell('itinerario','Itinerario');
+
+  wrap.appendChild(faunaSummaryCard());
+
+  const subTabs = document.createElement('div');
+  subTabs.className = 'tabbar'; subTabs.style.position = 'static'; subTabs.style.borderBottom = 'none'; subTabs.style.padding = '0 0 14px';
+  DAYS.forEach((d, i)=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (i === 0 ? ' active' : '');
+    b.textContent = `${d.weekdayShort} ${d.dateLabel}`;
+    b.onclick = ()=>{
+      showDay(d.id);
+      [...subTabs.children].forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+    };
+    subTabs.appendChild(b);
+  });
+  wrap.appendChild(subTabs);
+
+  DAYS.forEach((day, idx)=>{
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day-block';
+    dayDiv.id = 'day-' + day.id;
+    dayDiv.style.display = idx === 0 ? 'block' : 'none';
+
+    dayDiv.innerHTML = `
+      <div class="day-banner">
+        <div class="num">${day.weekday} ${day.dateLabel} · Día ${day.num}</div>
+        <h2>${day.title}</h2>
+        <div class="base">📍 ${day.base}</div>
+      </div>
+      <div class="narrative">${day.narrative}</div>
+    `;
+
+    day.stops.forEach((s, sIdx)=>{
+      const stopId = `${day.id}-stop-${sIdx}`;
+      const card = document.createElement('div');
+      card.className = 'stop';
+      card.innerHTML = `
+        ${photoHTML(s.q, s.ico, s.name)}
+        <span class="stop-visited-badge">✓ Visitado</span>
+        <div class="stop-body">
+          <div class="stop-head-row">
+            <span class="stop-time">${s.time}</span>
+            <label class="visited-toggle">
+              <input type="checkbox" class="visited-check" data-stop="${stopId}">
+              <span>Visitado</span>
+            </label>
+          </div>
+          <h3>${s.name}</h3>
+          <p class="desc">${s.desc}</p>
+          <div class="badges">
+            ${s.duration ? `<span class="badge">⏱ ${s.duration}</span>` : ''}
+            ${s.price ? `<span class="badge">💰 ${s.price}</span>` : ''}
+            ${s.checklist && s.checklist.length ? `<span class="badge stop-progress-badge" data-progress-for="${stopId}">✅ 0/${s.checklist.length}</span>` : ''}
+          </div>
+          ${faunaBadgesHTML(s, idx)}
+          <button class="pill-toggle" data-target="${stopId}" aria-expanded="false" aria-controls="${stopId}">
+            <span class="arrow" aria-hidden="true">▶</span><span class="toggle-label"> Ver más: historia, curiosidad y tips</span>
+          </button>
+          <div class="extra" id="${stopId}">
+            ${s.history ? `<div class="block"><div class="label hist">📜 Historia</div><p>${s.history}</p></div>` : ''}
+            ${s.curiosity ? `<div class="block"><div class="label">💡 Curiosidad</div><p>${s.curiosity}</p></div>` : ''}
+            ${s.tip ? `<div class="block"><div class="label tip">🎒 Tip</div><p>${s.tip}</p></div>` : ''}
+            ${s.seasonTip ? `<div class="block winter-block"><div class="label winter">🌦️ Temporada y clima</div><p>${s.seasonTip}</p></div>` : ''}
+            ${s.how ? `<div class="block how-block"><div class="label how">🚌 Cómo llegar</div><p>${s.how}</p></div>` : ''}
+            ${s.access ? `<div class="block"><div class="label acc">👂 Accesibilidad</div><p>${s.access}</p></div>` : ''}
+            ${s.checklist && s.checklist.length ? `<div class="block">
+              <div class="label check">✅ Checklist para este lugar</div>
+              <div class="stop-checklist" data-stop="${stopId}">
+                ${s.checklist.map((item, i)=>`
+                  <label class="check-item-mini"><input type="checkbox" data-idx="${i}"><span>${item}</span></label>
+                `).join('')}
+              </div>
+            </div>` : ''}
+          </div>
+        </div>
+      `;
+      dayDiv.appendChild(card);
+    });
+    wrap.appendChild(dayDiv);
+  });
+  return wrap;
+}
+
+function showDay(id){
+  document.querySelectorAll('.day-block').forEach(d=>{
+    d.style.display = (d.id === 'day-' + id) ? 'block' : 'none';
+  });
+  observePhotos(document.getElementById('day-' + id));
+}
+
+function faunaTableHTML(){
+  const months = ['E','F','M','A','M','J','J','A','S','O','N','D'];
+  const tripMonths = new Set(DAYS.map((d, i)=>dayMonth(i)));
+  let html = '<div class="fauna-table" role="table" aria-label="Calendario de fauna por mes">';
+  html += '<div class="fauna-row head" role="row"><div class="fauna-name"></div>' + months.map((m, i)=>`<div class="fauna-cell hd${tripMonths.has(i+1) ? ' trip' : ''}" role="columnheader">${m}</div>`).join('') + '</div>';
+  FAUNA_ORDER.forEach(k=>{
+    const f = FAUNA[k];
+    html += `<div class="fauna-row" role="row"><div class="fauna-name" role="rowheader">${f.ico} ${f.label}</div>`;
+    for(let m = 1; m <= 12; m++){
+      const st = f.m[m];
+      html += `<div class="fauna-cell ${STATUS_CLASS[st]}${tripMonths.has(m) ? ' trip' : ''}" role="cell" title="${STATUS_LABEL[st]}" aria-label="${STATUS_LABEL[st]}"></div>`;
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div class="fauna-legend"><span class="fauna-chip st-yes">en temporada</span><span class="fauna-chip st-maybe">posible / inicio o fin</span><span class="fauna-chip st-no">fuera de temporada</span></div>';
+  html += '<p class="fauna-legend-note">Los meses de tu viaje aparecen resaltados.</p>';
+  FAUNA_ORDER.forEach(k=>{
+    html += `<div class="tip-card"><h4>${FAUNA[k].ico} ${FAUNA[k].label}</h4><p>${FAUNA[k].note}</p></div>`;
+  });
+  return html;
+}
+
+function buildTipsSection(){
+  const wrap = sectionShell('tips','Tips');
+  wrap.innerHTML = `<h2 class="section-title">Tips, fauna e historia</h2>
+    <p class="section-sub">Lo esencial para el viaje, el calendario de fauna y el trasfondo histórico de Puerto Madryn.</p>
+    <div class="subtab-bar">
+      <button class="subtab active" data-subtab="tips">🎒 Tips</button>
+      <button class="subtab" data-subtab="fauna">🐋 Fauna</button>
+      <button class="subtab" data-subtab="historia">📖 Historia</button>
+    </div>
+    <div id="tipsPane"></div>
+    <div id="faunaPane" style="display:none;"></div>
+    <div id="historiaPane" style="display:none;"></div>`;
+
+  const tipsPane = wrap.querySelector('#tipsPane');
+  TIPS.forEach(t=>{
+    const c = document.createElement('div');
+    c.className = 'tip-card';
+    c.innerHTML = `<h4>${t.icon} ${t.title}</h4><p>${t.body}</p>`;
+    tipsPane.appendChild(c);
+  });
+
+  wrap.querySelector('#faunaPane').innerHTML = faunaTableHTML();
+
+  const historiaPane = wrap.querySelector('#historiaPane');
+  HISTORIA.forEach(era=>{
+    const c = document.createElement('div');
+    c.className = 'era-block';
+    c.innerHTML = `
+      <div class="era-header">
+        <span class="era-icon">${era.icon}</span>
+        <div><div class="era-period">${era.period}</div><h4 class="era-title">${era.title}</h4></div>
+      </div>
+      <div class="era-text">${era.paragraphs.map(p=>`<p>${p}</p>`).join('')}</div>`;
+    historiaPane.appendChild(c);
+  });
+
+  const panes = { tips: tipsPane, fauna: wrap.querySelector('#faunaPane'), historia: historiaPane };
+  wrap.querySelectorAll('.subtab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      wrap.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.keys(panes).forEach(k=>{ panes[k].style.display = (k === btn.dataset.subtab) ? 'block' : 'none'; });
+    });
+  });
+  return wrap;
+}
+
+function buildChecklistSection(){
+  const wrap = sectionShell('checklist','Checklist');
+  wrap.innerHTML = `<h2 class="section-title">Checklist de viaje</h2>
+    <p class="section-sub">Se guarda automáticamente en este dispositivo.</p>
+    <div id="checklistItems"></div>`;
+  return wrap;
+}
+
+function buildExtrasSection(){
+  const wrap = sectionShell('extras','Extras');
+  let html = `<h2 class="section-title">✨ Lugares extras</h2>
+    <p class="section-sub">Opcionales no incluidos en el itinerario — para si sobra tiempo o querés explorar más.</p>`;
+  EXTRAS.forEach(group=>{
+    html += `<h3 class="extras-zone-title">${group.zone}</h3>`;
+    group.places.forEach(p=>{
+      html += `<div class="extras-card">
+        ${photoHTML(p.q, p.ico, p.name, 'extras-photo')}
+        <div class="extras-body">
+          <div class="extras-header">
+            <span class="extras-icon">${p.ico}</span>
+            <h4 class="extras-name">${p.name}</h4>
+            <span class="badge">${p.price}</span>
+          </div>
+          <p class="extras-desc">${p.desc}</p>
+          <div class="extras-tip">🎒 ${p.tip}</div>
+        </div>
+      </div>`;
+    });
+  });
+  wrap.innerHTML = html;
+  return wrap;
+}
+
+/* ===================== CLIMA (Open-Meteo, sin API key) ===================== */
+const CIUDAD = { name:'Puerto Madryn', lat:-42.7692, lon:-65.0385 };
+const WMO_DESC = {
+  0:'Despejado', 1:'Mayormente despejado', 2:'Parcialmente nublado', 3:'Nublado',
+  45:'Niebla', 48:'Niebla con escarcha',
+  51:'Llovizna leve', 53:'Llovizna', 55:'Llovizna intensa',
+  61:'Lluvia leve', 63:'Lluvia', 65:'Lluvia intensa',
+  71:'Nieve leve', 73:'Nieve', 75:'Nieve intensa',
+  80:'Lluvias aisladas', 81:'Lluvias', 82:'Lluvias fuertes',
+  85:'Nevadas aisladas', 86:'Nevadas',
+  95:'Tormenta', 96:'Tormenta con granizo', 99:'Tormenta intensa'
+};
+const WMO_ICON = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️', 45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌧️', 61:'🌦️', 63:'🌧️', 65:'🌧️',
+  71:'🌨️', 73:'❄️', 75:'❄️', 80:'🌦️', 81:'🌧️', 82:'⛈️',
+  85:'🌨️', 86:'❄️', 95:'⛈️', 96:'⛈️', 99:'⛈️'
+};
+const wmoIcon = (c)=> WMO_ICON[c] || '🌡️';
+const wmoDesc = (c)=> WMO_DESC[c] || 'Variable';
+
+function buildClimaSection(){
+  const wrap = sectionShell('clima','Clima');
+  wrap.innerHTML = `
+    <h2 class="section-title">🌤️ Clima del viaje</h2>
+    <p class="section-sub">Pronóstico para Puerto Madryn. Tocá cada día para ver detalles.</p>
+    <div id="climaContent"><div class="clima-loading">⏳ Cargando pronóstico...</div></div>`;
+  wrap._climaLoaded = false;
+  return wrap;
+}
+
+async function loadClima(){
+  const sec = document.getElementById('sec-clima');
+  if(!sec || sec._climaLoaded) return;
+  sec._climaLoaded = true;
+  const container = document.getElementById('climaContent');
+  try{
+    const dates = DAYS.map(d=>isoDate(d.date));
+    const today = new Date(); today.setHours(0,0,0,0);
+    const firstDiff = Math.round((parseDateInput(dates[0]) - today) / 86400000);
+    const lastDiff = Math.round((parseDateInput(dates[dates.length - 1]) - today) / 86400000);
+    const forecast = firstDiff >= -1 && lastDiff <= 15;
+    const future = firstDiff > 15 || (firstDiff <= 15 && lastDiff > 15);
+    let useDates = dates, refYear = null;
+    if(!forecast && future){
+      useDates = dates.map(s=>{ const d = parseDateInput(s); d.setFullYear(d.getFullYear() - 1); return isoDate(d); });
+      refYear = parseDateInput(useDates[0]).getFullYear();
+    }
+
+    const tz = 'America%2FArgentina%2FBuenos_Aires';
+    const base = forecast
+      ? 'https://api.open-meteo.com/v1/forecast'
+      : 'https://archive-api.open-meteo.com/v1/archive';
+    const daily = forecast
+      ? 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,windspeed_10m_max,precipitation_probability_max'
+      : 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,windspeed_10m_max';
+    const url = `${base}?latitude=${CIUDAD.lat}&longitude=${CIUDAD.lon}&daily=${daily}&timezone=${tz}&start_date=${useDates[0]}&end_date=${useDates[useDates.length - 1]}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.daily || !data.daily.time) throw new Error('sin datos');
+    const dd = data.daily;
+
+    let html = `<div class="clima-city-title">📍 ${CIUDAD.name}</div><div class="clima-cards">`;
+    DAYS.forEach((day, i)=>{
+      const idx = dd.time.indexOf(useDates[i]);
+      if(idx === -1) return;
+      const max = Math.round(dd.temperature_2m_max[idx]);
+      const min = Math.round(dd.temperature_2m_min[idx]);
+      const code = dd.weathercode[idx];
+      const precip = (dd.precipitation_sum[idx] ?? 0);
+      const wind = Math.round(dd.windspeed_10m_max[idx] ?? 0);
+      const prob = dd.precipitation_probability_max ? (dd.precipitation_probability_max[idx] ?? '—') : null;
+      const windNote = wind >= 35 ? '<div class="clima-wind">💨 Viento fuerte: puede afectar paseos en bote, buceo y miradores expuestos.</div>' : '';
+      html += `<div class="clima-card" onclick="this.classList.toggle('open')">
+        <div class="clima-card-header">
+          <div class="clima-date">${day.weekday} ${day.dateLabel}<div class="clima-date-sub">${day.title}</div></div>
+          <span class="clima-icon">${wmoIcon(code)}</span>
+          <div class="clima-temps"><div class="clima-max">${max}°</div><div class="clima-min">${min}°</div></div>
+        </div>
+        <div class="clima-desc">${wmoDesc(code)}</div>
+        ${windNote}
+        <div class="clima-detail">
+          <div class="clima-detail-item"><span class="clima-detail-label">Lluvia</span><span class="clima-detail-val">${precip.toFixed(1)} mm</span></div>
+          <div class="clima-detail-item"><span class="clima-detail-label">${prob === null ? 'Referencia' : 'Prob. lluvia'}</span><span class="clima-detail-val">${prob === null ? refYear : prob + '%'}</span></div>
+          <div class="clima-detail-item"><span class="clima-detail-label">Viento máx.</span><span class="clima-detail-val">${wind} km/h</span></div>
+          <div class="clima-detail-item"><span class="clima-detail-label">Fuente</span><span class="clima-detail-val">Open-Meteo</span></div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    let disclaimer;
+    if(forecast){
+      disclaimer = '⚠️ El pronóstico es más confiable para los próximos 7 días y puede cambiar. Volvé a consultarlo cerca de la salida.';
+    }else if(future){
+      disclaimer = `📅 Tu viaje todavía no entra en la ventana de pronóstico (unos 15 días). Se muestra el clima que hubo esos mismos días de ${refYear} como referencia: no es un pronóstico. Volvé a consultar cuando se acerque la fecha.`;
+    }else{
+      disclaimer = '📅 Son datos históricos de los días de tu viaje.';
+    }
+    container.innerHTML = html + `<p class="clima-disclaimer">${disclaimer}</p>`;
+  }catch(e){
+    container.innerHTML = `<div class="clima-error">
+      ⚠️ No se pudo cargar el clima. Verificá tu conexión a internet e intentá de nuevo.<br><br>
+      <button onclick="document.getElementById('sec-clima')._climaLoaded=false; loadClima();" style="margin-top:8px;padding:8px 16px;background:var(--verde);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Reintentar</button>
+    </div>`;
+  }
+}
+
+/* ===================== AJUSTES ===================== */
+function buildAjustesSection(){
+  const wrap = sectionShell('ajustes','Ajustes');
+  wrap.innerHTML = `
+    <h2 class="section-title">⚙️ Ajustes</h2>
+    <p class="section-sub">Los cambios se aplican al instante y se guardan automáticamente.</p>
+
+    <div class="ajustes-group">
+      <div class="ajustes-group-title">Tamaño del texto</div>
+      <div class="ajustes-row">
+        <span class="ajustes-row-label">Tamaño de fuente</span>
+        <div class="ajustes-stepper">
+          <button class="ajustes-step-btn" id="fontDecrease" aria-label="Reducir texto">−</button>
+          <span class="ajustes-step-val" id="fontValue">100%</span>
+          <button class="ajustes-step-btn" id="fontIncrease" aria-label="Aumentar texto">+</button>
+        </div>
+      </div>
+      <div class="ajustes-row">
+        <span class="ajustes-row-label">Interlineado</span>
+        <div class="ajustes-stepper">
+          <button class="ajustes-step-btn" id="lineDecrease" aria-label="Reducir interlineado">−</button>
+          <span class="ajustes-step-val" id="lineValue">Normal</span>
+          <button class="ajustes-step-btn" id="lineIncrease" aria-label="Aumentar interlineado">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ajustes-group">
+      <div class="ajustes-group-title">Apariencia</div>
+      <label class="ajustes-toggle-row"><span>Alto contraste</span><input type="checkbox" id="a11yHighContrast"></label>
+      <label class="ajustes-toggle-row"><span>Modo oscuro</span><input type="checkbox" id="a11yDarkMode"></label>
+      <label class="ajustes-toggle-row"><span>Reducir animaciones</span><input type="checkbox" id="a11yReduceMotion"></label>
+    </div>
+
+    <div class="ajustes-group">
+      <div class="ajustes-group-title">Restablecer</div>
+      <button class="ajustes-reset-btn" id="a11yReset">Volver a los valores de accesibilidad originales</button>
+    </div>
+
+    <div class="ajustes-group">
+      <div class="ajustes-group-title">🗑️ Restablecer todo el viaje</div>
+      <p class="ajustes-reset-desc">Borra los tildados de visitas, todos los checklists y vuelve la fecha al día de hoy. No se puede deshacer.</p>
+      <button class="ajustes-reset-all-btn" id="resetAllBtn">Restablecer todo</button>
+      <div class="ajustes-confirm" id="resetConfirm" style="display:none;">
+        <p>¿Estás seguro? Se van a borrar todos los tildados y configuraciones del viaje.</p>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="ajustes-confirm-cancel" id="resetCancel">Cancelar</button>
+          <button class="ajustes-confirm-ok" id="resetConfirmOk">Sí, borrar todo</button>
+        </div>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(()=>{
+    syncA11yControls();
+    const sec = document.getElementById('sec-ajustes');
+    if(!sec) return;
+    sec.querySelector('#fontDecrease').addEventListener('click', ()=>{ if(a11yState.fontSize > 70){ a11yState.fontSize -= 10; applyA11y(); saveA11y(); }});
+    sec.querySelector('#fontIncrease').addEventListener('click', ()=>{ if(a11yState.fontSize < 160){ a11yState.fontSize += 10; applyA11y(); saveA11y(); }});
+    sec.querySelector('#lineDecrease').addEventListener('click', ()=>{ if(a11yState.lineIdx > 0){ a11yState.lineIdx--; applyA11y(); saveA11y(); }});
+    sec.querySelector('#lineIncrease').addEventListener('click', ()=>{ if(a11yState.lineIdx < LINE_VALUES.length - 1){ a11yState.lineIdx++; applyA11y(); saveA11y(); }});
+    sec.querySelector('#a11yHighContrast').addEventListener('change', e=>{ a11yState.highContrast = e.target.checked; applyA11y(); saveA11y(); });
+    sec.querySelector('#a11yDarkMode').addEventListener('change', e=>{ a11yState.darkMode = e.target.checked; applyA11y(); saveA11y(); });
+    sec.querySelector('#a11yReduceMotion').addEventListener('change', e=>{ a11yState.reduceMotion = e.target.checked; applyA11y(); saveA11y(); });
+    sec.querySelector('#a11yReset').addEventListener('click', ()=>{ a11yState = { ...A11Y_DEFAULTS }; applyA11y(); saveA11y(); });
+
+    const resetAllBtn = sec.querySelector('#resetAllBtn');
+    const resetConfirm = sec.querySelector('#resetConfirm');
+    resetAllBtn.addEventListener('click', ()=>{ resetConfirm.style.display = 'block'; resetAllBtn.style.display = 'none'; });
+    sec.querySelector('#resetCancel').addEventListener('click', ()=>{ resetConfirm.style.display = 'none'; resetAllBtn.style.display = 'block'; });
+    sec.querySelector('#resetConfirmOk').addEventListener('click', async ()=>{
+      for(const k of ['checklist-state','stop-checklists-state','visited-stops','trip-config','a11y']){ await appStorage.set(k, null); }
+      tripConfig = { totalDays: 8, arrivalDate: todayISO(), arrivalTime: '15:00', departureTime: '17:00' };
+      rebuildDays();
+      a11yState = { ...A11Y_DEFAULTS };
+      applyA11y();
+      updateHeroEyebrow();
+      renderAll();
+    });
+  });
+  return wrap;
+}
+
+/* ===================== MAPA (Leaflet) ===================== */
+const DAY_COLORS = { d1:"#0E3B4F", d2:"#1F6F8B", d3:"#D2623A", d4:"#2B2A4C", d5:"#8C6A1F", d6:"#5B7C8D", d7:"#3C7A5A", d8:"#A0522D" };
+let leafletMap = null;
+let mapLayers = [];
+
+function buildMapaSection(){
+  const wrap = sectionShell('mapa','Mapa');
+  const filter = document.createElement('div');
+  filter.className = 'map-day-filter';
+  const allChip = document.createElement('button');
+  allChip.className = 'map-chip active'; allChip.dataset.day = 'all'; allChip.textContent = 'Todos';
+  filter.appendChild(allChip);
+  DAYS.forEach(d=>{
+    const chip = document.createElement('button');
+    chip.className = 'map-chip'; chip.dataset.day = d.id;
+    chip.textContent = `${d.weekdayShort} ${d.dateLabel}`;
+    filter.appendChild(chip);
+  });
+  filter.addEventListener('click', (e)=>{
+    const chip = e.target.closest('.map-chip');
+    if(!chip) return;
+    filter.querySelectorAll('.map-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    if(leafletMap) renderMapMarkers(chip.dataset.day);
+  });
+  wrap.appendChild(filter);
+
+  const note = document.createElement('div');
+  note.className = 'map-note';
+  note.textContent = 'Ubicaciones aproximadas';
+  wrap.appendChild(note);
+
+  const mapDiv = document.createElement('div');
+  mapDiv.id = 'leafletMap';
+  mapDiv.setAttribute('role','application');
+  mapDiv.setAttribute('aria-label','Mapa interactivo con las paradas del itinerario');
+  wrap.appendChild(mapDiv);
+  return wrap;
+}
+
+function initMap(){
+  if(leafletMap || typeof L === 'undefined') return;
+  leafletMap = L.map('leafletMap', { scrollWheelZoom:true }).setView([-42.9, -64.9], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap', maxZoom: 18 }).addTo(leafletMap);
+  renderMapMarkers('all');
+  const mapEl = document.getElementById('leafletMap');
+  if('ResizeObserver' in window){
+    new ResizeObserver(()=>{ leafletMap.invalidateSize(); }).observe(mapEl);
+  }
+  window.addEventListener('orientationchange', ()=>{ setTimeout(()=>leafletMap.invalidateSize(), 250); });
+}
+
+function renderMapMarkers(filterDay){
+  mapLayers.forEach(l => leafletMap.removeLayer(l));
+  mapLayers = [];
+  const daysToShow = filterDay === 'all' ? DAYS : DAYS.filter(d=>d.id === filterDay);
+  const allPoints = [];
+  daysToShow.forEach(day=>{
+    const color = DAY_COLORS[day.id] || '#0E3B4F';
+    const route = [];
+    day.stops.forEach(s=>{
+      if(s.lat == null) return;
+      route.push([s.lat, s.lng]);
+      allPoints.push([s.lat, s.lng]);
+      const icon = L.divIcon({
+        className:'',
+        html:`<div class="day-marker-icon" style="background:${color}">${day.num}</div>`,
+        iconSize:[28,28], iconAnchor:[14,14]
+      });
+      const marker = L.marker([s.lat, s.lng], { icon }).addTo(leafletMap);
+      marker.bindPopup(`
+        <div class="popup-time">${s.time} · Día ${day.num}</div>
+        <div class="popup-name">${s.name}</div>
+        <p class="popup-desc">${s.desc.slice(0, 110)}${s.desc.length > 110 ? '…' : ''}</p>
+      `);
+      mapLayers.push(marker);
+    });
+    if(route.length > 1 && filterDay !== 'all'){
+      mapLayers.push(L.polyline(route, { color, weight:3, dashArray:'6,6', opacity:0.8 }).addTo(leafletMap));
+    }
+  });
+  if(allPoints.length) leafletMap.fitBounds(allPoints, { padding:[30,30] });
+}
+
+/* ===================== RENDER GENERAL ===================== */
+function renderAll(){
+  const mapaSection = document.getElementById('sec-mapa');
+  if(mapaSection) mapaSection.classList.remove('active');
+  if(leafletMap){ try{ leafletMap.remove(); }catch(e){} leafletMap = null; mapLayers = []; }
+
+  sectionsRoot.innerHTML = '';
+  sectionsRoot.appendChild(buildItinerarioSection());
+  sectionsRoot.appendChild(buildMapaSection());
+  sectionsRoot.appendChild(buildClimaSection());
+  sectionsRoot.appendChild(buildExtrasSection());
+  sectionsRoot.appendChild(buildTipsSection());
+  sectionsRoot.appendChild(buildChecklistSection());
+  sectionsRoot.appendChild(buildAjustesSection());
+
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-itinerario').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{ b.classList.remove('active'); b.removeAttribute('aria-current'); });
+  const itinBtn = document.querySelector('.nav-btn[data-target="itinerario"]');
+  if(itinBtn){ itinBtn.classList.add('active'); itinBtn.setAttribute('aria-current','page'); }
+
+  initStopChecklists();
+  initVisitedToggles();
+  renderChecklist();
+  observePhotos(sectionsRoot);
+}
+
+/* expandir / contraer detalle de cada parada */
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.pill-toggle');
+  if(!btn) return;
+  const target = document.getElementById(btn.dataset.target);
+  target.classList.toggle('open');
+  btn.classList.toggle('open');
+  const isOpen = target.classList.contains('open');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  btn.querySelector('.toggle-label').textContent = isOpen ? ' Ocultar' : ' Ver más: historia, curiosidad y tips';
+});
+
+/* ===================== NAVEGACIÓN INFERIOR ===================== */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>{ b.classList.remove('active'); b.removeAttribute('aria-current'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-current','page');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    const activeSection = document.getElementById('sec-' + btn.dataset.target);
+    activeSection.classList.add('active');
+    if(btn.dataset.target !== 'mapa'){ activeSection.focus({ preventScroll:true }); }
+    if(btn.dataset.target === 'mapa'){
+      initMap();
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(leafletMap) leafletMap.invalidateSize(); }));
+      setTimeout(()=>leafletMap && leafletMap.invalidateSize(), 300);
+    }
+    if(btn.dataset.target === 'clima'){ loadClima(); }
+    observePhotos(activeSection);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+});
+
+/* ===================== CHECKLIST GENERAL ===================== */
+async function renderChecklist(){
+  const root = document.getElementById('checklistItems');
+  if(!root) return;
+  root.innerHTML = '';
+  let saved = {};
+  try{
+    const res = await appStorage.get('checklist-state');
+    if(res && res.value) saved = JSON.parse(res.value);
+  }catch(e){}
+  CHECKLIST_ITEMS.forEach((label, i)=>{
+    const key = 'item-' + i;
+    const checked = !!saved[key];
+    const row = document.createElement('label');
+    row.className = 'check-item' + (checked ? ' done' : '');
+    row.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}><span>${label}</span>`;
+    row.querySelector('input').addEventListener('change', async (e)=>{
+      row.classList.toggle('done', e.target.checked);
+      saved[key] = e.target.checked;
+      try{ await appStorage.set('checklist-state', JSON.stringify(saved)); }catch(err){}
+    });
+    root.appendChild(row);
+  });
+}
+
+/* ===================== CHECKLISTS POR PARADA ===================== */
+async function initStopChecklists(){
+  let savedAll = {};
+  try{
+    const res = await appStorage.get('stop-checklists-state');
+    if(res && res.value) savedAll = JSON.parse(res.value);
+  }catch(e){}
+  document.querySelectorAll('.stop-checklist').forEach(container=>{
+    const stopId = container.dataset.stop;
+    const saved = savedAll[stopId] || {};
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const updateProgress = ()=>{
+      const total = checkboxes.length;
+      const done = [...checkboxes].filter(c=>c.checked).length;
+      const badge = document.querySelector(`.stop-progress-badge[data-progress-for="${stopId}"]`);
+      if(badge) badge.textContent = `✅ ${done}/${total}`;
+    };
+    checkboxes.forEach(cb=>{
+      const idx = cb.dataset.idx;
+      cb.checked = !!saved[idx];
+      cb.addEventListener('change', async ()=>{
+        saved[idx] = cb.checked;
+        savedAll[stopId] = saved;
+        updateProgress();
+        try{ await appStorage.set('stop-checklists-state', JSON.stringify(savedAll)); }catch(err){}
+      });
+    });
+    updateProgress();
+  });
+}
+
+/* ===================== VISITADO ===================== */
+async function initVisitedToggles(){
+  let saved = {};
+  try{
+    const res = await appStorage.get('visited-stops');
+    if(res && res.value) saved = JSON.parse(res.value);
+  }catch(e){}
+  document.querySelectorAll('.visited-check').forEach(cb=>{
+    const stopId = cb.dataset.stop;
+    const card = cb.closest('.stop');
+    const isVisited = !!saved[stopId];
+    cb.checked = isVisited;
+    card.classList.toggle('is-visited', isVisited);
+    cb.addEventListener('change', async ()=>{
+      saved[stopId] = cb.checked;
+      card.classList.toggle('is-visited', cb.checked);
+      try{ await appStorage.set('visited-stops', JSON.stringify(saved)); }catch(err){}
+    });
+  });
+}
+
+/* ===================== CONFIGURAR VIAJE (modal) ===================== */
+function updateHeroEyebrow(){
+  const eyebrow = document.getElementById('heroEyebrow');
+  if(!eyebrow || !DAYS.length) return;
+  const first = `${DAYS[0].weekdayShort} ${DAYS[0].dateLabel}`;
+  const last = `${DAYS[DAYS.length - 1].weekdayShort} ${DAYS[DAYS.length - 1].dateLabel}`;
+  eyebrow.textContent = `Guía interactiva · ${tripConfig.totalDays} días (${first} – ${last})`;
+}
+
+let pendingArrivalDate = tripConfig.arrivalDate;
+let pendingArrivalTime = tripConfig.arrivalTime;
+let pendingDepartureTime = tripConfig.departureTime;
+let pendingTotalDays = tripConfig.totalDays;
+
+const arrivalDateInput = document.getElementById('arrivalDateInput');
+const arrivalTimeInput = document.getElementById('arrivalTimeInput');
+const departureTimeInput = document.getElementById('departureTimeInput');
+const settingsBackdrop = document.getElementById('settingsBackdrop');
+const settingsBtnEl = document.getElementById('settingsBtn');
+
+function updateDeparturePreview(){
+  const arrival = parseDateInput(pendingArrivalDate);
+  const departure = addDays(arrival, pendingTotalDays - 1);
+  document.getElementById('departurePreview').textContent =
+    `Salida estimada: ${formatWeekday(departure)} ${formatDateShort(departure)} a las ${pendingDepartureTime} hs.`;
+}
+function renderDayStepper(){
+  document.getElementById('dayCount').textContent = pendingTotalDays;
+  document.getElementById('dayMinus').disabled = pendingTotalDays <= MIN_DAYS;
+  document.getElementById('dayPlus').disabled = pendingTotalDays >= MAX_DAYS;
+  updateDeparturePreview();
+}
+function openSettings(){
+  pendingArrivalDate = tripConfig.arrivalDate;
+  pendingArrivalTime = tripConfig.arrivalTime;
+  pendingDepartureTime = tripConfig.departureTime;
+  pendingTotalDays = tripConfig.totalDays;
+  arrivalDateInput.value = pendingArrivalDate;
+  arrivalTimeInput.value = pendingArrivalTime;
+  departureTimeInput.value = pendingDepartureTime;
+  renderDayStepper();
+  settingsBackdrop.classList.add('open');
+  arrivalDateInput.focus();
+}
+function closeSettingsModal(){
+  settingsBackdrop.classList.remove('open');
+  settingsBtnEl.focus();
+}
+
+document.getElementById('dayMinus').addEventListener('click', ()=>{ pendingTotalDays = Math.max(MIN_DAYS, pendingTotalDays - 1); renderDayStepper(); });
+document.getElementById('dayPlus').addEventListener('click', ()=>{ pendingTotalDays = Math.min(MAX_DAYS, pendingTotalDays + 1); renderDayStepper(); });
+arrivalDateInput.addEventListener('change', ()=>{ pendingArrivalDate = arrivalDateInput.value || pendingArrivalDate; updateDeparturePreview(); });
+arrivalTimeInput.addEventListener('change', ()=>{ pendingArrivalTime = arrivalTimeInput.value || pendingArrivalTime; });
+departureTimeInput.addEventListener('change', ()=>{ pendingDepartureTime = departureTimeInput.value || pendingDepartureTime; updateDeparturePreview(); });
+settingsBtnEl.addEventListener('click', openSettings);
+document.getElementById('settingsCancel').addEventListener('click', closeSettingsModal);
+settingsBackdrop.addEventListener('click', (e)=>{ if(e.target === settingsBackdrop) closeSettingsModal(); });
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && settingsBackdrop.classList.contains('open')) closeSettingsModal(); });
+
+document.getElementById('settingsApply').addEventListener('click', async ()=>{
+  tripConfig = {
+    totalDays: pendingTotalDays,
+    arrivalDate: pendingArrivalDate,
+    arrivalTime: pendingArrivalTime,
+    departureTime: pendingDepartureTime
+  };
+  rebuildDays();
+  updateHeroEyebrow();
+  renderAll();
+  settingsBackdrop.classList.remove('open');
+  try{ await appStorage.set('trip-config', JSON.stringify(tripConfig)); }catch(err){}
+});
+
+async function loadTripConfig(){
+  try{
+    const res = await appStorage.get('trip-config');
+    if(res && res.value){
+      const saved = JSON.parse(res.value);
+      if(saved && typeof saved.totalDays === 'number' && saved.arrivalDate){
+        tripConfig = { ...tripConfig, ...saved };
+        rebuildDays();
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+/* ===================== ARRANQUE ===================== */
+(async function init(){
+  await loadA11y();
+  const hasConfig = await loadTripConfig();
+  updateHeroEyebrow();
+  renderAll();
+  observePhotos(document.querySelector('.hero'));
+  if(!hasConfig) openSettings();   // primera vez: pedir fechas y cantidad de días
+})();
+
+/* ===================== PWA ===================== */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+</script>
+</body>
+</html>

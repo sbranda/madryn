@@ -1,6 +1,6 @@
 {
-  "name": "Viaje Puerto Madryn",
-  "short_name": "Viaje Madryn",
+  "name": "Viaje a Puerto Madryn",
+  "short_name": "Viaje a Madryn",
   "description": "Guía interactiva de viaje: itinerario de 8 días, mapa, clima, fauna según la fecha, historia y tips para Puerto Madryn y Península Valdés.",
   "start_url": "./index.html",
   "scope": "./",
