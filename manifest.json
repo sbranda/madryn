@@ -1,0 +1,15 @@
+{
+  "name": "Viaje Puerto Madryn",
+  "short_name": "Viaje Madryn",
+  "description": "Guía interactiva de viaje: itinerario de 8 días, mapa, clima, fauna según la fecha, historia y tips para Puerto Madryn y Península Valdés.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EAF3F6",
+  "theme_color": "#0E3B4F",
+  "lang": "es-AR",
+  "icons": [
+    {"src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable"},
+    {"src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
