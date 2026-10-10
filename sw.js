@@ -1,10 +1,11 @@
-const CACHE_NAME = "madryn-8dias-v1";
+const CACHE_NAME = "madryn-8dias-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.svg",
-  "./icon-512.svg"
+  "./icon-192.png",
+  "./icon-512.png",
+  "./apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (event) => {
